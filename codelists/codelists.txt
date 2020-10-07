@@ -1,6 +1,11 @@
 opensafely/atrial-fibrillation/2020-07-09
-codelist/opensafely/chronic-kidney-disease/2020-04-14
+
+opensafely/chronic-kidney-disease/2020-04-14
+
 opensafely/ethnicity/2020-04-27
+
 opensafely/warfarin/2020-10-05
-opensafely/direct-acting-oral-anticoagulants-doac/2020-10-05/
+
+opensafely/direct-acting-oral-anticoagulants-doac/2020-10-05
+
 # to add: contraindications
