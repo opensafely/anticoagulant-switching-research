@@ -1,3 +1,10 @@
-opensafely/chronic-cardiac-disease/2020-04-08
-opensafely/chronic-liver-disease/2020-06-02
-opensafely/asthma-inhaler-salbutamol-medication/2020-04-15
+opensafely/atrial-fibrillation/2020-07-09
+
+opensafely/chronic-kidney-disease/2020-04-14
+
+opensafely/ethnicity/2020-04-27
+
+opensafely/warfarin/2020-10-05
+
+opensafely/direct-acting-oral-anticoagulants-doac/2020-10-05
+
