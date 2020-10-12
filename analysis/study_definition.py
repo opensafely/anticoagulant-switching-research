@@ -58,7 +58,7 @@ study = StudyDefinition(
     ),
     ## DEMOGRAPHIC INFORMATION
     age=patients.age_as_of(
-        "2020-03-`6",
+        "2020-03-16",
         return_expectations={
             "rate": "universal",
             "int": {"distribution": "population_ages"},
