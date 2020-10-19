@@ -182,6 +182,14 @@ study = StudyDefinition(
         returning="binary_flag",
         return_expectations={"date": {"latest": "2020-03-15"}},
     ),
+
+    #DOAC contrainidcation
+    doac_contraindication=patients.with_these_clinical_events(
+        doac_contraindication_codes,
+        on_or_before="2020-03-15",
+        returning="binary_flag",
+        return_expectations={"date": {"latest": "2020-03-15"}},
+    ),
             
     # creatinine level; to stratify kidney function (6 months)
     creatinine=patients.with_these_clinical_events(
