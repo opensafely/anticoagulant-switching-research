@@ -38,5 +38,5 @@ warfarin_codes = codelist_from_csv(
 )
 
 doac_codes = codelist_from_csv(
-    "codelists/opensafely-doac.csv", system="snomed", column="id",
+    "codelists/opensafely-direct-acting-oral-anticoagulants-doac.csv", system="snomed", column="id",
 )
