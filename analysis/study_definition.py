@@ -236,7 +236,11 @@ study = StudyDefinition(
         returning="numeric_value",
         between=["2019-09-16", "2020-03-15"],
         find_last_match_in_period=True,
-        return_expectations={"date": {"latest": "2020-03-15"}},
+        return_expectations={
+        "float": {"distribution": "normal", "mean": 72.0, "stddev": 200.0},
+        "date": {"latest": "2020-03-15"},
+        "incidence":0.35,
+        },
     ),
 
     # renal function test prior to march? (6 months)       
@@ -245,7 +249,11 @@ study = StudyDefinition(
         returning="numeric_value",
         between=["2019-09-16", "2020-03-15"],
         find_last_match_in_period=True,
-        return_expectations={"date": {"latest": "2020-03-15"}},
+        return_expectations={
+            "float": {"distribution": "normal", "mean": 150.0, "stddev": 200.0},
+            "date": {"earliest": "2019-07-16",  "latest": "2020-03-15"},
+            "incidence": 0.95,
+        },
     ),
 
     # renal function test after march       
@@ -254,7 +262,11 @@ study = StudyDefinition(
         returning="numeric_value",
         between=["2020-03-16", "2020-06-15"],
         find_last_match_in_period=True,
-        return_expectations={"date": {"latest": "2020-06-15"}},
+            return_expectations={
+            "float": {"distribution": "normal", "mean": 150.0, "stddev": 200.0},
+            "date": {"earliest": "2020-03-16",  "latest": "2020-06-15"},
+            "incidence": 0.95,
+        },
     ),
 
     # CAREHOME STATUS
