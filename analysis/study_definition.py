@@ -43,6 +43,7 @@ study = StudyDefinition(
         return_expectations={
             "date": {"earliest": "2020-03-16", "latest": "2020-06-15"}
         },
+    ),
 
 
     died_date_ons=patients.died_from_any_cause(
@@ -140,6 +141,8 @@ study = StudyDefinition(
         return_expectations={
             "date": {"earliest": "2000-09-16", "latest": "2020-03-15"}
         },
+    ),
+
         
     warfarin_last_three_months=patients.with_these_medications(
         warfarin_codes,
@@ -151,6 +154,8 @@ study = StudyDefinition(
         return_expectations={
             "date": {"earliest": "2019-09-16", "latest": "2020-03-15"}
         },
+    ),
+
     warfarin_next_three_months=patients.with_these_medications(
         warfarin_codes,
         between=["2020-03-16", "2020-06-15"],
@@ -161,6 +166,7 @@ study = StudyDefinition(
         return_expectations={
             "date": {"earliest": "2019-09-16", "latest": "2020-03-15"}
         },
+    ),
         
     doac_last_three_months=patients.with_these_medications(
         doac_codes,
@@ -172,6 +178,7 @@ study = StudyDefinition(
         return_expectations={
             "date": {"earliest": "2019-09-16", "latest": "2020-03-15"}
         },
+    ),
     
     
     ## COVARIATES
@@ -209,7 +216,8 @@ study = StudyDefinition(
         ckd_codes,
         on_or_before="2020-03-15",
         returning="binary_flag",
-        return_expectations={"date": {"latest": "2020-03-15"}},    
+        return_expectations={"date": {"latest": "2020-03-15"}}, 
+    ),   
 
     # number of INR tests in last 3 months
     inr_test_count=patients.with_these_clinical_events(
