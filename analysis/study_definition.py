@@ -224,7 +224,10 @@ study = StudyDefinition(
         inr_codes,
         between=["2019-12-16", "2020-03-15"],
         returning="number_of_matches_in_period",
-        return_expectations={"date": {"latest": "2020-03-15"}},
+        return_expectations={
+        "incidence": 0.6,
+            "int": {"distribution": "normal", "mean": 3, "stddev": 2},
+        },
     ),
             
     # most recent INR TTR value  (6 months)      
