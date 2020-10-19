@@ -8,3 +8,5 @@ opensafely/warfarin/2020-10-05
 
 opensafely/direct-acting-oral-anticoagulants-doac/2020-10-05
 
+opensafely/explicit-contraindication-to-doacs-direct-acting-anticoagulants/2020-10-19
+

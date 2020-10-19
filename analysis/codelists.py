@@ -16,6 +16,10 @@ ckd_codes = codelist_from_csv(
     "codelists/opensafely-chronic-kidney-disease.csv", system="ctv3", column="CTV3ID",
 )
 
+doac_contraindication_codes = codelist_from_csv(
+    "codelists/opensafely-explicit-contraindication-to-doacs-direct-acting-anticoagulants.csv", system="ctv3", column="id",
+)
+
 # DEMOGRAPHIC CODELIST
 ethnicity_codes = codelist_from_csv(
     "codelists/opensafely-ethnicity.csv",
