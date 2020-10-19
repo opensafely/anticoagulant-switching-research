@@ -34,9 +34,9 @@ ethnicity_codes = codelist_from_csv(
 
 # MEDICATIONS
 warfarin_codes = codelist_from_csv(
-    "codelists/opensafely-warfarin.csv", system="ctv3", column="CTV3ID",
+    "codelists/opensafely-warfarin.csv", system="snomed", column="id",
 )
 
 doac_codes = codelist_from_csv(
-    "codelists/opensafely-doac.csv", system="ctv3", column="CTV3ID",
+    "codelists/opensafely-doac.csv", system="snomed", column="id",
 )
