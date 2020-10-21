@@ -1,0 +1,133 @@
+type,id,bnf_code,nm
+amp,272711000001102,0208020V0AAAAAA,Warfarin 1mg tablets (IVAX Pharmaceuticals UK Ltd)
+amp,303111000001107,0208020V0AAAAAA,Warfarin 1mg tablets (Actavis UK Ltd)
+amp,321511000001106,0208020V0AAAAAA,Warfarin 1mg tablets (Sandoz Ltd)
+amp,421411000001103,0208020V0AAAAAA,Warfarin 1mg tablets (A A H Pharmaceuticals Ltd)
+amp,437711000001102,0208020V0AAAAAA,Warfarin 1mg tablets (Teva UK Ltd)
+amp,524811000001109,0208020V0AAAAAA,Warfarin 1mg tablets (Kent Pharmaceuticals Ltd)
+amp,590411000001106,0208020V0AAAAAA,Warfarin 1mg tablets (The Boots Company Plc)
+amp,739511000001109,0208020V0AAAAAA,Warfarin 1mg tablets (Alliance Healthcare (Distribution) Ltd)
+amp,746411000001102,0208020V0AAAAAA,Warfarin 1mg tablets (Mylan)
+amp,9798311000001105,0208020V0AAAAAA,Warfarin 1mg tablets (Almus Pharmaceuticals Ltd)
+amp,10138911000001108,0208020V0AAAAAA,Warfarin 1mg tablets (Zentiva)
+amp,10418211000001107,0208020V0AAAAAA,Warfarin 1mg tablets (Arrow Generics Ltd)
+amp,16071211000001106,0208020V0AAAAAA,Warfarin 1mg tablets (Bristol Laboratories Ltd)
+amp,17876711000001107,0208020V0AAAAAA,Warfarin 1mg tablets (Phoenix Healthcare Distribution Ltd)
+amp,19835411000001102,0208020V0AAAAAA,Warfarin 1mg tablets (APC Pharmaceuticals & Chemicals (Europe) Ltd)
+amp,21919511000001107,0208020V0AAAAAA,Warfarin 1mg tablets (Waymade Healthcare Plc)
+amp,22735311000001104,0208020V0AAAAAA,Warfarin 1mg tablets (DE Pharmaceuticals)
+amp,28988911000001100,0208020V0AAAAAA,Warfarin 1mg tablets (Crescent Pharma Ltd)
+amp,30945211000001105,0208020V0AAAAAA,Warfarin 1mg tablets (Mawdsley-Brooks & Company Ltd)
+amp,34760111000001106,0208020V0AAAAAA,Warfarin 1mg tablets (Sun Pharmaceutical Industries Europe B.V.)
+amp,36843011000001100,0208020V0AAAAAA,Warfarin 1mg tablets (Torrent Pharma (UK) Ltd)
+amp,347911000001109,0208020V0AAABAB,Warfarin 3mg tablets (Mylan)
+amp,456711000001104,0208020V0AAABAB,Warfarin 3mg tablets (A A H Pharmaceuticals Ltd)
+amp,473111000001108,0208020V0AAABAB,Warfarin 3mg tablets (The Boots Company Plc)
+amp,508311000001104,0208020V0AAABAB,Warfarin 3mg tablets (Teva UK Ltd)
+amp,550411000001100,0208020V0AAABAB,Warfarin 3mg tablets (Sandoz Ltd)
+amp,555911000001104,0208020V0AAABAB,Warfarin 3mg tablets (Actavis UK Ltd)
+amp,584211000001100,0208020V0AAABAB,Warfarin 3mg tablets (Alliance Healthcare (Distribution) Ltd)
+amp,772211000001101,0208020V0AAABAB,Warfarin 3mg tablets (Kent Pharmaceuticals Ltd)
+amp,927211000001109,0208020V0AAABAB,Warfarin 3mg tablets (IVAX Pharmaceuticals UK Ltd)
+amp,9798011000001107,0208020V0AAABAB,Warfarin 3mg tablets (Almus Pharmaceuticals Ltd)
+amp,10139111000001103,0208020V0AAABAB,Warfarin 3mg tablets (Zentiva)
+amp,10418411000001106,0208020V0AAABAB,Warfarin 3mg tablets (Arrow Generics Ltd)
+amp,16071411000001105,0208020V0AAABAB,Warfarin 3mg tablets (Bristol Laboratories Ltd)
+amp,17876911000001109,0208020V0AAABAB,Warfarin 3mg tablets (Phoenix Healthcare Distribution Ltd)
+amp,19835611000001104,0208020V0AAABAB,Warfarin 3mg tablets (APC Pharmaceuticals & Chemicals (Europe) Ltd)
+amp,21919811000001105,0208020V0AAABAB,Warfarin 3mg tablets (Waymade Healthcare Plc)
+amp,22735611000001109,0208020V0AAABAB,Warfarin 3mg tablets (DE Pharmaceuticals)
+amp,28989111000001105,0208020V0AAABAB,Warfarin 3mg tablets (Crescent Pharma Ltd)
+amp,30945411000001109,0208020V0AAABAB,Warfarin 3mg tablets (Mawdsley-Brooks & Company Ltd)
+amp,34760411000001101,0208020V0AAABAB,Warfarin 3mg tablets (Sun Pharmaceutical Industries Europe B.V.)
+amp,36844011000001103,0208020V0AAABAB,Warfarin 3mg tablets (Torrent Pharma (UK) Ltd)
+amp,36911000001105,0208020V0AAADAD,Warfarin 5mg tablets (Kent Pharmaceuticals Ltd)
+amp,504911000001105,0208020V0AAADAD,Warfarin 5mg tablets (The Boots Company Plc)
+amp,617811000001100,0208020V0AAADAD,Warfarin 5mg tablets (Teva UK Ltd)
+amp,642911000001101,0208020V0AAADAD,Warfarin 5mg tablets (Actavis UK Ltd)
+amp,727111000001108,0208020V0AAADAD,Warfarin 5mg tablets (Mylan)
+amp,729811000001109,0208020V0AAADAD,Warfarin 5mg tablets (IVAX Pharmaceuticals UK Ltd)
+amp,751611000001108,0208020V0AAADAD,Warfarin 5mg tablets (A A H Pharmaceuticals Ltd)
+amp,883011000001107,0208020V0AAADAD,Warfarin 5mg tablets (Alliance Healthcare (Distribution) Ltd)
+amp,919811000001107,0208020V0AAADAD,Warfarin 5mg tablets (Sandoz Ltd)
+amp,9797411000001102,0208020V0AAADAD,Warfarin 5mg tablets (Almus Pharmaceuticals Ltd)
+amp,10139311000001101,0208020V0AAADAD,Warfarin 5mg tablets (Zentiva)
+amp,10418611000001109,0208020V0AAADAD,Warfarin 5mg tablets (Arrow Generics Ltd)
+amp,16071611000001108,0208020V0AAADAD,Warfarin 5mg tablets (Bristol Laboratories Ltd)
+amp,17877111000001109,0208020V0AAADAD,Warfarin 5mg tablets (Phoenix Healthcare Distribution Ltd)
+amp,19835811000001100,0208020V0AAADAD,Warfarin 5mg tablets (APC Pharmaceuticals & Chemicals (Europe) Ltd)
+amp,21920111000001102,0208020V0AAADAD,Warfarin 5mg tablets (Waymade Healthcare Plc)
+amp,22736411000001102,0208020V0AAADAD,Warfarin 5mg tablets (DE Pharmaceuticals)
+amp,28989311000001107,0208020V0AAADAD,Warfarin 5mg tablets (Crescent Pharma Ltd)
+amp,30945711000001103,0208020V0AAADAD,Warfarin 5mg tablets (Mawdsley-Brooks & Company Ltd)
+amp,34760611000001103,0208020V0AAADAD,Warfarin 5mg tablets (Sun Pharmaceutical Industries Europe B.V.)
+amp,36844311000001100,0208020V0AAADAD,Warfarin 5mg tablets (Torrent Pharma (UK) Ltd)
+amp,8730911000001102,0208020V0AAAIAI,Warfarin 5mg/5ml oral solution (Special Order)
+amp,8732411000001106,0208020V0AAAIAI,Warfarin 5mg/5ml oral suspension (Special Order)
+amp,8731411000001101,0208020V0AAAJAJ,Warfarin 2mg/5ml oral solution (Special Order)
+amp,8733211000001101,0208020V0AAAJAJ,Warfarin 2mg/5ml oral suspension (Special Order)
+amp,12959011000001109,0208020V0AAAKAK,Warfarin 25mg/5ml oral solution (Special Order)
+amp,8728611000001109,0208020V0AAAMAM,Warfarin 3mg/5ml oral solution (Special Order)
+amp,8729111000001108,0208020V0AAAMAM,Warfarin 3mg/5ml oral suspension (Special Order)
+amp,8729811000001101,0208020V0AAANAN,Warfarin 1mg/5ml oral solution (Special Order)
+amp,8730111000001100,0208020V0AAANAN,Warfarin 1mg/5ml oral suspension (Special Order)
+amp,12959411000001100,0208020V0AAAPAP,Warfarin 4.16mg/5ml oral solution (Special Order)
+amp,12957311000001102,0208020V0AAARAR,Warfarin 1.5mg/5ml oral solution (Special Order)
+amp,395111000001106,0208020V0AAASAS,Warfarin 500microgram tablets (Alliance Healthcare (Distribution) Ltd)
+amp,622211000001107,0208020V0AAASAS,Warfarin 500microgram tablets (Kent Pharmaceuticals Ltd)
+amp,3659711000001104,0208020V0AAASAS,Warfarin 500microgram tablets (A A H Pharmaceuticals Ltd)
+amp,10305211000001109,0208020V0AAASAS,Warfarin 500microgram tablets (Actavis UK Ltd)
+amp,10417011000001103,0208020V0AAASAS,Warfarin 500microgram tablets (Arrow Generics Ltd)
+amp,10733911000001106,0208020V0AAASAS,Warfarin 500microgram tablets (Zentiva)
+amp,15202611000001100,0208020V0AAASAS,Warfarin 500microgram tablets (Sigma Pharmaceuticals Plc)
+amp,17876511000001102,0208020V0AAASAS,Warfarin 500microgram tablets (Phoenix Healthcare Distribution Ltd)
+amp,20538311000001102,0208020V0AAASAS,Warfarin 500microgram tablets (Advanz Pharma)
+amp,21919311000001101,0208020V0AAASAS,Warfarin 500microgram tablets (Waymade Healthcare Plc)
+amp,22736711000001108,0208020V0AAASAS,Warfarin 500microgram tablets (DE Pharmaceuticals)
+amp,34759911000001108,0208020V0AAASAS,Warfarin 500microgram tablets (Sun Pharmaceutical Industries Europe B.V.)
+amp,37272811000001105,0208020V0AAASAS,Warfarin 500microgram tablets (Mawdsley-Brooks & Company Ltd)
+amp,12958011000001104,0208020V0AAATAT,Warfarin 100micrograms/5ml oral solution (Special Order)
+amp,12958511000001107,0208020V0AAAUAU,Warfarin 2.5mg/5ml oral solution (Special Order)
+amp,8728011000001102,0208020V0AAAVAV,Warfarin 10mg/5ml oral solution (Special Order)
+amp,8728311000001104,0208020V0AAAVAV,Warfarin 10mg/5ml oral suspension (Special Order)
+amp,12960011000001105,0208020V0AAAWAW,Warfarin 4mg/5ml oral solution (Special Order)
+amp,12961311000001103,0208020V0AAAXAX,Warfarin 500micrograms/5ml oral solution (Special Order)
+amp,32742511000001102,0208020V0AABABA,Warfarin 1mg capsules (Special Order)
+amp,18288311000001103,0208020V0AABBBB,Warfarin 1mg/ml oral suspension sugar free (Rosemont Pharmaceuticals Ltd)
+amp,18723611000001101,0208020V0AABBBB,Warfarin 1mg/ml oral suspension sugar free (Alliance Healthcare (Distribution) Ltd)
+amp,20367411000001100,0208020V0AABBBB,Warfarin 1mg/ml oral suspension sugar free (A A H Pharmaceuticals Ltd)
+amp,21919111000001103,0208020V0AABBBB,Warfarin 1mg/ml oral suspension sugar free (Waymade Healthcare Plc)
+amp,22736911000001105,0208020V0AABBBB,Warfarin 1mg/ml oral suspension sugar free (DE Pharmaceuticals)
+amp,32742211000001100,0208020V0AABCBC,Warfarin 3mg capsules (Special Order)
+amp,32741911000001103,0208020V0AABDBD,Warfarin 5mg capsules (Special Order)
+amp,933311000001105,0208020V0BBAAAA,Marevan 1mg tablets (Advanz Pharma)
+amp,284011000001104,0208020V0BBABAB,Marevan 3mg tablets (Advanz Pharma)
+amp,461911000001100,0208020V0BBACAD,Marevan 5mg tablets (Advanz Pharma)
+amp,204811000001109,0208020V0BBAFAS,Marevan 500microgram tablets (Advanz Pharma)
+amp,18509011000001102,0208020V0BDAAAC,Coumadin 4mg tablets (Imported (Canada))
+vmp,319733000,0208020V0AAAAAA,Warfarin 1mg tablets
+vmp,319734006,0208020V0AAABAB,Warfarin 3mg tablets
+vmp,375374009,0208020V0AAACAC,Warfarin 4mg tablets
+vmp,319735007,0208020V0AAADAD,Warfarin 5mg tablets
+vmp,8798711000001106,0208020V0AAAIAI,Warfarin 5mg/5ml oral solution
+vmp,8798811000001103,0208020V0AAAIAI,Warfarin 5mg/5ml oral suspension
+vmp,8798311000001107,0208020V0AAAJAJ,Warfarin 2mg/5ml oral solution
+vmp,8798411000001100,0208020V0AAAJAJ,Warfarin 2mg/5ml oral suspension
+vmp,13016911000001108,0208020V0AAAKAK,Warfarin 25mg/5ml oral solution
+vmp,8798511000001101,0208020V0AAAMAM,Warfarin 3mg/5ml oral solution
+vmp,8798611000001102,0208020V0AAAMAM,Warfarin 3mg/5ml oral suspension
+vmp,8798111000001105,0208020V0AAANAN,Warfarin 1mg/5ml oral solution
+vmp,8798211000001104,0208020V0AAANAN,Warfarin 1mg/5ml oral suspension
+vmp,13017011000001107,0208020V0AAAPAP,Warfarin 4.16mg/5ml oral solution
+vmp,13016611000001102,0208020V0AAARAR,Warfarin 1.5mg/5ml oral solution
+vmp,319736008,0208020V0AAASAS,Warfarin 500microgram tablets
+vmp,13016711000001106,0208020V0AAATAT,Warfarin 100micrograms/5ml oral solution
+vmp,13016811000001103,0208020V0AAAUAU,Warfarin 2.5mg/5ml oral solution
+vmp,8797911000001107,0208020V0AAAVAV,Warfarin 10mg/5ml oral solution
+vmp,8798011000001109,0208020V0AAAVAV,Warfarin 10mg/5ml oral suspension
+vmp,13017111000001108,0208020V0AAAWAW,Warfarin 4mg/5ml oral solution
+vmp,13017211000001102,0208020V0AAAXAX,Warfarin 500micrograms/5ml oral solution
+vmp,32751111000001103,0208020V0AABABA,Warfarin 1mg capsules
+vmp,18290011000001102,0208020V0AABBBB,Warfarin 1mg/ml oral suspension sugar free
+vmp,32751211000001109,0208020V0AABCBC,Warfarin 3mg capsules
+vmp,32751311000001101,0208020V0AABDBD,Warfarin 5mg capsules

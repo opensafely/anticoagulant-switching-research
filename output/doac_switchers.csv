@@ -1,0 +1,5 @@
+,year,period,baseline warfarin patients (thousands),switched (thousands),switch (%),continued_warfarin (%),switched back (% of switchers),had_inr (% of continued),had_ttr (% of continued)
+0,2019,March-May,194.5,6.7,3.5,90.9,4.1,83.7,38.0
+1,2020,March-May,163.7,20.0,12.2,83.1,5.8,80.1,38.7
+0,2019,June-Aug,185.6,5.9,3.2,91.4,4.4,82.3,39.2
+1,2020,June-Aug,142.8,6.2,4.3,89.6,4.6,78.8,39.3
