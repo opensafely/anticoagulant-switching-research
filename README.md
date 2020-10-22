@@ -13,6 +13,44 @@ This is the code and configuration for our paper, _name goes here_
 * Developers and epidemiologists interested in the code should review
 [DEVELOPERS.md](./docs/DEVELOPERS.md).
 
+## How to view notebooks
+
+Notebooks live in the `notebooks/` folder (with an `ipynb`
+extension). You can most easily view them [on
+nbviewer](https://nbviewer.jupyter.org/github/ebmdatalab/<repo>/tree/master/notebooks/),
+though looking at them in Github should also work.
+
+To do development work, you'll need to set up a local jupyter server
+and git repository - see notes below and `DEVELOPERS.md` for more detail.
+
+## Getting started re-running these notebooks
+
+This project uses reproducible, cross-platform
+analysis notebook, using Docker.  It also includes:
+
+* configuration for `jupytext`, to support easier code review
+* cross-platform startup scripts
+* best practice folder structure and documentation
+
+Developers and analysts using this repo should
+refer to [`DEVELOPERS.md`](DEVELOPERS.md) for instructions on getting
+started. 
+
+If you have not yet installed Docker, please see the [`INSTALLATION_GUIDE.md`](INSTALLATION_GUIDE.md)
+
+### Loading SQL credentials when running notebooks
+Create a file `environ.txt` in the root and set the SQL server details/credentials as follows:
+`DBCONN="DRIVER={ODBC Driver 17 for SQL Server};SERVER=[servername];DATABASE=[dbname];UID=[your_UID];PWD=[your_pw]"`. 
+This is referred to in `run.py` so run the notebook using command `py run.py` in Windows (outside of the server) rather than using `run.exe`.
+The credentials are loaded into notebooks as follows:
+`dbconn = os.environ.get('DBCONN', None).strip('"')`
+`def closing_connection(dbconn):
+    cnxn = pyodbc.connect(dbconn)
+    try:
+        yield cnxn
+    finally:
+        cnxn.close()'
+        
 # About the OpenSAFELY framework
 
 The OpenSAFELY framework is a new secure analytics platform for
