@@ -39,11 +39,11 @@ doac_codes = codelist_from_csv(
 
 ## TESTS
 inr_codes = codelist_from_csv(
-    "opensafely-international-normalised-ratio-inr.csv", system="ctv3", column="id",
+    "codelists/opensafely-international-normalised-ratio-inr.csv", system="ctv3", column="id",
 )
 
 high_inr_codes = codelist_from_csv(
-    "opensafely-high-international-normalised-ratio-inr.csv", system="ctv3", column="id",
+    "codelists/opensafely-high-international-normalised-ratio-inr.csv", system="ctv3", column="id",
 )
 
 ttr_codes = codelist(["Xaa68"], system="ctv3")

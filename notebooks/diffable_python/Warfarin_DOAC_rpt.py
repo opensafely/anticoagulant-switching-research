@@ -53,8 +53,16 @@ def closing_connection(dbconn):
 display(Markdown("### Warfarin Codelist"))
 codelist = pd.read_csv(os.path.join('..','local_codelists','warfarin_codelist.csv'))
 
-def import_codelist(codelist, return_dmdid=False):
-    codes = tuple(codelist["id"].astype("str"))
+def codelist_to_tuple(codelist):
+    display(Markdown(f"Code count = {len(codelist)}"))
+    if len(codelist)>1:
+        out = tuple(codelist["id"].astype("str"))
+    else: # don't create tuple if only one code
+        out = str(tuple(codelist["id"].astype("str"))).replace(",","")
+    return out
+
+def drug_codelist(codelist, return_dmdid=False):
+    codes = codelist_to_tuple(codelist)
     
     if return_dmdid==True:
         dmd = ", DMD_ID"   # need DMD_IDs for DOACs only
@@ -73,19 +81,31 @@ def import_codelist(codelist, return_dmdid=False):
         out = pd.read_sql(query, connection)
 
     out2 = tuple(out["MultilexDrug_ID"]) # convert to tuple for use in SQL strings
-    display(Markdown(f"Code count = {len(out2)}"))
+    display(Markdown(f"Drug ID count = {len(out2)}"))
     return out, out2
     
 
-_, warf = import_codelist(codelist)
+_, warf = drug_codelist(codelist, return_dmdid=False)
+
 
 display(Markdown("### DOAC Codelist"))
 codelist = pd.read_csv(os.path.join('..','local_codelists','doac_codelist.csv'))
-doac_full, doac = import_codelist(codelist, return_dmdid=True)
+doac_full, doac = drug_codelist(codelist, return_dmdid=True)
 doac_full["DMD_ID"] = doac_full["DMD_ID"].astype(int)
 
 # join Multilex IDs with chemical groups for lookup table
 doac_full = doac_full.merge(codelist[["id", "chemical"]], left_on="DMD_ID", right_on="id").drop(["DMD_ID", "id"], 1)
+
+
+# INR codelist
+display(Markdown("### INR Codelist"))
+codelist = pd.read_csv(os.path.join('..','codelists','opensafely-international-normalised-ratio-inr.csv'))
+inr_codes = codelist_to_tuple(codelist)
+
+# INR codelist
+display(Markdown("### High INR Codelist"))
+codelist = pd.read_csv(os.path.join('..','codelists','opensafely-high-international-normalised-ratio-inr.csv'))
+high_inr = codelist_to_tuple(codelist)
 
 
 # -
@@ -280,95 +300,7 @@ out4 = out1.join(out3)
 
 # -
 
-# # Patients with repeats for warfarin and/or DOAC
-
-# +
- 
-# Warfarin and DOAC medication issues
-sql1 = f'''SELECT DISTINCT
-Patient_ID,
-CASE WHEN MultilexDrug_ID in {warf} THEN 'warfarin' ELSE 'DOAC' END AS 'anticoag',
-DATEFROMPARTS(YEAR(StartDate),MONTH(StartDate),1) AS Issuemonth
-INTO #issues
-FROM
-  MedicationIssue
-WHERE
-  StartDate >= '20190101' AND 
-  StartDate < DATEFROMPARTS(YEAR(GETDATE()),MONTH(GETDATE()),1) -- issues occurring up to end of last full month
-  AND
-  (MultilexDrug_ID in {warf} OR MultilexDrug_ID in {doac})'''
-
-
-# Warfarin and DOAC repeats
-sql2 = f'''SELECT DISTINCT
-Patient_ID,
-CASE WHEN MultilexDrug_ID in {warf} THEN 'warfarin' ELSE 'DOAC' END AS 'anticoag',
-StartDate,
-EndDate,
-CASE WHEN EndDate > '99990101' THEN 1 ELSE 0 END AS open_ended
-INTO #repeats
-FROM MedicationRepeat
-WHERE EndDate >= '20190101' AND
-      (MultilexDrug_ID in {warf} OR MultilexDrug_ID in {doac})'''
-
-
-# join issues patients to repeats
-sql3 = f'''SELECT
-iss.Patient_ID,
-iss.anticoag,
-iss.IssueMonth,
-MAX(CASE WHEN r.StartDate IS NOT NULL THEN 1 ELSE 0 END) AS on_repeat,
-MAX(CASE WHEN r.EndDate > '99990101' THEN 1 ELSE 0 END) AS open_ended
---CASE WHEN DATEFROMPARTS(YEAR(EndDate),MONTH(EndDate),1) = Issuemonth THEN 1 ELSE 0 END AS ended_this_month
---,RANK() OVER (PARTITION BY Patient_ID ORDER BY EndDate DESC) AS WarfEndRank
-INTO #results
-FROM #issues iss
-LEFT JOIN #repeats r ON iss.Patient_ID = r.Patient_ID  
-AND
-  iss.anticoag = r.anticoag AND -- find patients with a repeat for the same medication
-  DATEFROMPARTS(YEAR(r.StartDate),MONTH(r.StartDate),1) <= Issuemonth AND  -- repeat started before or during the month a prescription was issued
-  DATEFROMPARTS(YEAR(r.EndDate),MONTH(r.EndDate),1) >= Issuemonth      -- repeat ended during or after the month a prescription was issued
-GROUP BY 
-iss.Patient_ID,
-iss.anticoag,
-iss.IssueMonth
-'''
-
-
-query = '''SELECT  
-issuemonth,
-anticoag,
-COUNT(DISTINCT Patient_ID) AS total_patients,
-SUM(on_repeat) AS on_repeat
-FROM #results
-GROUP BY anticoag, issuemonth 
-ORDER BY anticoag, issuemonth'''
-    
-    
-with closing_connection(dbconn) as connection:
-    connection.execute(sql1)
-                        
-    # insert linkable data into repeats table if using dummy data
-    if 'OPENCoronaExport' in dbconn:
-        connection.execute('''INSERT INTO #repeats (Patient_ID, anticoag, StartDate, EndDate, open_ended)
-        VALUES ('1486439', 'warf', '20180301', '20181001', 0)''' )    
-    else:
-        pass    
-    
-    connection.execute(sql2)
-    connection.execute(sql3)
-
-    
-    df4 = pd.read_sql(query, connection)
-
-# -
-
-dfp = df4[["issuemonth","anticoag","total_patients","on_repeat"]].set_index(["issuemonth","anticoag"]).unstack().stack(level=0).unstack()
-#display(Markdown(f"## Patients with an anticoagulant issued each month, and of whom, how many were on a repeat prescription"))
-titles = ["Patients with an anticoagulant issued each month,\n and of whom, how many were on a repeat prescription"]
-plot_line_chart([dfp], titles)
-
-# ## Patients with both a DOAC and warfarin repeat
+# # Patients with DOAC and warfarin repeats
 #
 # ### Of patients who had either anticoagulant issued each month, *who has repeats* and were they *started together*
 #
@@ -416,9 +348,9 @@ CASE WHEN w.StartDate IS NOT NULL THEN 1 ELSE 0 END AS warf_repeat,
 --w.StartDate as warfstart,
 --d.EndDate as doacend,
 --w.EndDate as warfend,
-CASE WHEN d.EndDate > '99990101' THEN 1 ELSE 0 END AS doac_open_ended,
-CASE WHEN w.EndDate > '99990101' THEN 1 ELSE 0 END AS warf_open_ended,
-CASE WHEN d.EndDate > '99990101' AND w.EndDate > '99990101' THEN 1 ELSE 0 END AS both_open_ended,
+CASE WHEN d.EndDate >= '99990101' THEN 1 ELSE 0 END AS doac_open_ended,
+CASE WHEN w.EndDate >= '99990101' THEN 1 ELSE 0 END AS warf_open_ended,
+CASE WHEN d.EndDate >= '99990101' AND w.EndDate >= '99990101' THEN 1 ELSE 0 END AS both_open_ended,
 CASE WHEN w.StartDate = d.Startdate THEN 1 ELSE 0 END AS started_same_date,
 CASE WHEN w.StartDate = d.Startdate AND (w.StartDate = w.EndDate) THEN 1 ELSE 0 END AS started_same_date_warf_cancelled,
 CASE WHEN w.StartDate = d.Startdate AND (d.StartDate = d.EndDate) THEN 1 ELSE 0 END AS started_same_date_doac_cancelled,
@@ -901,11 +833,13 @@ base = date(2019, 1, 1)
 date_list = [base + relativedelta(months=x) for x in range(20)]
 
 df_out = pd.DataFrame()
+df_out2 = pd.DataFrame()
 
 
 # Warfarin and DOAC patients and all issue dates
 sqla = f'''SELECT 
 Patient_ID,
+MultilexDrug_ID,
 StartDate
 INTO #issues_all
 FROM
@@ -913,25 +847,39 @@ FROM
 WHERE
   StartDate >= '20180901' AND
   (MultilexDrug_ID in {warf} OR MultilexDrug_ID in {doac})
-GROUP BY Patient_ID, StartDate
+GROUP BY Patient_ID, MultilexDrug_ID, StartDate
 '''
 
 # INR tests
 sqlb = f'''select 
 Patient_ID,
 ConsultationDate,
+CASE WHEN CTV3Code in {inr_codes} THEN 'inr' ELSE 'high_inr' END AS codedevent,
+MAX(NumericValue) AS highest_value,
 COUNT(*) AS test_count
 INTO #inr_all
 FROM CodedEvent e
-WHERE e.CTV3Code = '42QE.'
-AND ConsultationDate >='20190101'
-GROUP BY Patient_ID, ConsultationDate
+WHERE (e.CTV3Code in {inr_codes} OR e.CTV3Code in {high_inr})
+AND ConsultationDate >= {base}
+GROUP BY Patient_ID, CASE WHEN CTV3Code in {inr_codes} THEN 'inr' ELSE 'high_inr' END, ConsultationDate
 '''
+
+# High INRs
+sqlc = f'''select DISTINCT
+Patient_ID,
+ConsultationDate
+INTO #high_inr_all
+FROM #inr_all
+WHERE (codedevent = 'high_inr' or (codedevent = 'inr' and highest_value >=8))
+AND ConsultationDate >= {base}
+'''
+
 
 with closing_connection(dbconn) as connection:
     # set up common temp tables to query from for each date period
     connection.execute(sqla)
     connection.execute(sqlb)
+    connection.execute(sqlc)
     
     # iterate over months, because when considering who is a warfarin patient we want to look over the last 3 months, which is complex if multiple months analysed together
 
@@ -947,9 +895,9 @@ with closing_connection(dbconn) as connection:
         sql1 = f'''SELECT 
         Patient_ID,
         MAX(StartDate) AS WarfLatestIssue
-        INTO #issues_all
+        INTO #warf
         FROM
-          MedicationIssue
+          #issues_all
         WHERE
           StartDate >= '{mindate2}' AND StartDate < '{maxdate}' AND
           MultilexDrug_ID in {warf}
@@ -975,7 +923,17 @@ with closing_connection(dbconn) as connection:
         SUM(test_count) AS test_count
         INTO #inr
         FROM #inr_all
+        WHERE codedevent = 'inr'
         AND ConsultationDate >= '{mindate}' AND ConsultationDate < '{maxdate}'
+        GROUP BY Patient_ID
+        '''
+        
+        # high INRs
+        sql4 = f'''select
+        Patient_ID
+        INTO #high_inr
+        FROM #high_inr_all
+        WHERE ConsultationDate >= '{mindate}' AND ConsultationDate < '{maxdate}'
         GROUP BY Patient_ID
         '''
 
@@ -992,18 +950,32 @@ with closing_connection(dbconn) as connection:
         WHERE d.Patient_ID IS NULL -- exclude pts from denominator if they had doac more recently than warfarin
         '''
     
+        # join high INRs to patients on warfarin
+        query2 = f'''
+        SELECT 
+        '{month_date}' AS high_INR_month,
+        COUNT(DISTINCT inr.Patient_ID) AS patient_count,
+        COUNT(DISTINCT w.Patient_ID) AS denominator
+        FROM #warf w   
+        LEFT JOIN #high_inr AS inr ON inr.Patient_ID = w.Patient_ID  -- raised INRs
+        LEFT JOIN #doac d on w.Patient_ID = d.Patient_ID AND d.doacLatestIssue > w.warfLatestIssue -- check whether patient has switched to doac
+        WHERE d.Patient_ID IS NULL -- exclude pts from denominator if they had doac more recently than warfarin
+        '''
         connection.execute(sql1)
         connection.execute(sql2)
         connection.execute(sql3)
+        connection.execute(sql4)
         if 'OPENCoronaExport' in dbconn:
             connection.execute('''INSERT INTO #warf (Patient_ID, WarfLatestIssue)
             VALUES ('1486439', '20200201')''' )    
-            connection.execute('''INSERT INTO #doac (Patient_ID, doacStart)
+            connection.execute('''INSERT INTO #doac (Patient_ID, doacLatestIssue)
             VALUES ('1486439', '20200301')''' ) 
             connection.execute('''INSERT INTO #inr (Patient_ID)
             VALUES ('1486439')''' )   
         df = pd.read_sql(query, connection)
+        df2 = pd.read_sql(query2, connection)
     df_out = pd.concat([df_out, df])
+    df_out2 = pd.concat([df_out2, df2])
     display(f"{mindate}... complete!")
 
 # -
@@ -1014,7 +986,7 @@ df_out.to_csv(os.path.join("..","output","inr_testing.csv"))
 
 # +
 dfp = df_out.copy()
-dfp["issuemonth"] = pd.to_datetime(dfp["INR_month"])
+dfp["INR_month"] = pd.to_datetime(dfp["INR_month"])
 dfp = dfp.set_index("INR_month")
 
 dfp["patients tested"] = 1000*dfp["patient_count"]/dfp["denominator"]
@@ -1027,6 +999,20 @@ plot_line_chart([dfp[["total tests","patients tested"]]], titles,
 titles = ["Monthly rate of INR testing\n per 1000 patients on warfarin"]
 plot_line_chart([dfp[["rate per 1000"]]], titles, 
                 ylabels={0:"Patients tested per 1000 eligible patients"})
+
+# +
+dfp = df_out2.copy()
+dfp["high_INR_month"] = pd.to_datetime(dfp["high_INR_month"])
+dfp = dfp.set_index("high_INR_month")
+
+dfp["patients high"] = 1000*dfp["patient_count"]/dfp["denominator"]
+
+titles = ["Monthly rate of high INRs\n per 1000 patients on warfarin"]
+plot_line_chart([dfp[["patients high"]]], titles, 
+                ylabels={0:"Patients with High INRs per 1000 eligible patients"})
+# -
+
+# ## Summary INR testing data
 
 tests = df_out.copy()
 tests["rate per 1000"] = 1000*tests["patient_count"]/tests["denominator"]
