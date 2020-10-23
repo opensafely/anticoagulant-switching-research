@@ -22,6 +22,7 @@ study = StudyDefinition(
         (age >=18 AND age <= 110) AND
         has_follow_up AND
         warfarin_last_three_months AND
+        warfarin_earliest <= "20190916" AND
         NOT doac_last_three_months AND 
         (warfarin_next_three_months OR
         doac_next_three_months)
@@ -179,7 +180,13 @@ study = StudyDefinition(
             "date": {"earliest": "2019-09-16", "latest": "2020-03-15"}
         },
     ),
-    
+
+    doac_previously=patients.with_these_medications(
+        doac_codes,
+        on_or_before="2020-03-15",
+        returning="binary_flag",
+        return_expectations={"incidence": 0.05},
+    ),    
     
     ## COVARIATES
     # atrial fibrillation    
@@ -187,7 +194,7 @@ study = StudyDefinition(
         atrial_fibrillation_codes,
         on_or_before="2020-03-15",
         returning="binary_flag",
-        return_expectations={"date": {"latest": "2020-03-15"}},
+        return_expectations={"incidence": 0.05},
     ),
 
     #DOAC contrainidcation
@@ -195,7 +202,7 @@ study = StudyDefinition(
         doac_contraindication_codes,
         on_or_before="2020-03-15",
         returning="binary_flag",
-        return_expectations={"date": {"latest": "2020-03-15"}},
+        return_expectations={"incidence": 0.05},
     ),
             
     # creatinine level; to stratify kidney function (6 months)
@@ -216,7 +223,7 @@ study = StudyDefinition(
         ckd_codes,
         on_or_before="2020-03-15",
         returning="binary_flag",
-        return_expectations={"date": {"latest": "2020-03-15"}}, 
+        return_expectations={"incidence": 0.1}, 
     ),   
 
     # number of INR tests in last 3 months

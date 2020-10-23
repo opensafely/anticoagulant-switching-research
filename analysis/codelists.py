@@ -13,7 +13,7 @@ ckd_codes = codelist_from_csv(
 )
 
 atrial_fibrillation_codes = codelist_from_csv(
-    "codelists/opensafely-atrial-fibrillation.csv", system="ctv3", column="CTV3Code",
+    "codelists/opensafely-atrial-fibrillation-clinical-finding.csv", system="ctv3", column="CTV3Code",
 )
 
 doac_contraindication_codes = codelist_from_csv(
