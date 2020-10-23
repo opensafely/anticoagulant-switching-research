@@ -1,4 +1,4 @@
-opensafely/atrial-fibrillation/2020-07-09
+opensafely/atrial-fibrillation-clinical-finding/2020-07-09
 
 opensafely/chronic-kidney-disease/2020-04-14
 
