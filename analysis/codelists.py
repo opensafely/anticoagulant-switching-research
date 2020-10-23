@@ -4,13 +4,9 @@ from cohortextractor import (
 )
 
 
-inr_codes = codelist(["42QE."], system="ctv3")
 
-ttr_codes = codelist(["Xaa68"], system="ctv3")
 
-renal_function_test_codes = codelist(["451..","XE2q5","XacUK"], system="ctv3")
 
-creatinine_codes = codelist(["XE2q5"], system="ctv3")
 
 ckd_codes = codelist_from_csv(
     "codelists/opensafely-chronic-kidney-disease.csv", system="ctv3", column="CTV3ID",
@@ -40,3 +36,18 @@ warfarin_codes = codelist_from_csv(
 doac_codes = codelist_from_csv(
     "codelists/opensafely-direct-acting-oral-anticoagulants-doac.csv", system="snomed", column="id",
 )
+
+## TESTS
+inr_codes = codelist_from_csv(
+    "codelists/opensafely-international-normalised-ratio-inr.csv", system="ctv3", column="id",
+)
+
+high_inr_codes = codelist_from_csv(
+    "codelists/opensafely-high-international-normalised-ratio-inr.csv", system="ctv3", column="id",
+)
+
+ttr_codes = codelist(["Xaa68"], system="ctv3")
+
+renal_function_test_codes = codelist(["451..","XE2q5","XacUK"], system="ctv3")
+
+creatinine_codes = codelist(["XE2q5"], system="ctv3")
