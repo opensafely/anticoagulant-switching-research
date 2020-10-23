@@ -22,7 +22,7 @@ study = StudyDefinition(
         (age >=18 AND age <= 110) AND
         has_follow_up AND
         warfarin_last_three_months AND
-        AND warfarin_earliest <= "20190916" AND
+        warfarin_earliest <= "20190916" AND
         NOT doac_last_three_months AND 
         (warfarin_next_three_months OR
         doac_next_three_months)
