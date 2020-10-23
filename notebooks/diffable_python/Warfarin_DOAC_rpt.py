@@ -212,6 +212,75 @@ def plot_line_chart(dfs, titles, ylabels={}, loc='lower left', ymins={}):
     plt.show()
 
 
+# ## Create function to generate dummy data
+
+# +
+
+# randomly assign dates to patients
+def generate_dummy_data(date_fields, month_field=None, multiple_choice={}, exclusive_choices={}, size=1000):
+    
+    '''Generate a dataframe of dummy data
+    
+    Inputs:
+    date_fields (list): list of column names to generate and populate with dates
+    month_field (str): name of single column from which to calculate a month ("YYYY-MM-01")
+    multiple_choice (dict): fields to generate, and lists of possible values to populate with. Note these can overlap i.e. patients can have several of the values given, and no patients in the output will have none
+    exclusive_choices (dict): fields to generate, and lists of possible values to populate with. Each row of data will be assigned one value. 
+    size (int): number of patient IDs to initially generate
+    '''
+    
+    p2 = pd.DataFrame()
+    
+    # create a list of numeric patient ids (starting from "1000")
+    patient_ids = pd.Series(np.arange(1000,1000+size))
+    # create a list of dates to select randomly from
+    dates = pd.to_datetime(pd.Series(pd.date_range(start='2020-01-01', end='2020-07-01', periods=size*2), name="dates").dt.date)
+    
+    patient_subset = patient_ids
+    
+    for c in multiple_choice: # e.g. {"anticoag":["warfarin","doac"]} each patient can be duplicted here to have several of each choice
+        patient_subset = patient_subset.sample(int(patient_ids.shape[0]*0.5), random_state=1, replace=True)
+        for item in multiple_choice[c]:
+            out = pd.DataFrame(patient_subset.sample(int(patient_subset.shape[0]*5), random_state=1, replace=True).reset_index(drop=True), columns=["Patient_ID"])
+            out[c] = item
+            p2 = p2.append(out).reset_index(drop=True)
+    
+    for i, c in enumerate(exclusive_choices): # e.g. {"flag":[0,1]}
+        out = pd.Series(exclusive_choices[c], name=c).sample(p2.shape[0],replace=True).reset_index()
+        p2 = pd.concat([p2, out], axis=1, sort=False).drop("index",1)
+    
+    if len(p2) == 0: # if no choices were supplied, begin populating df with the generated list of patient IDs
+        p2["Patient_ID"] = patient_ids
+    
+    for d in date_fields:    # assign dates from generated date list into each required date field
+        p2[d] = dates.sample(n=p2.shape[0], replace=True).reset_index(drop=True).astype(str)
+       
+    # convert dates to first of month
+    if month_field is not None:
+        p2[f"{month_field}_month"] = p2[month_field].str[:-2] + "01"
+        
+    return p2.sort_values(by="Patient_ID")
+
+
+def insert_dummy_data(dummy_data, table, rows=1000):
+    ''' Insert dummy data into specified SQL temp table'''
+    
+    # creating column list for insertion
+    cols = ", ".join([str(i) for i in dummy_data.columns.tolist()])
+    for i,row in dummy_data.head(rows).iterrows():
+        sql = f"INSERT INTO {table} ({cols}) VALUES {tuple(row)}"
+        connection.execute(sql) 
+
+
+date_fields=["StartDate", "EndDate"]
+multiple_choice={"anticoag":["warfarin","DOAC"]} 
+exclusive_choices={"year":["2019","2020"]}
+dummy_data = generate_dummy_data(date_fields, month_field="StartDate", multiple_choice=multiple_choice, exclusive_choices=exclusive_choices)
+dummy_data
+
+
+# -
+
 # # Total patients with anticoagulants per month, and duplicate issues
 
 # +
@@ -247,7 +316,7 @@ GROUP BY Startmonth'''
 
 # total patients with doac and warfarin issued same day
 query3 = f'''SELECT d.Startmonth, COUNT(DISTINCT d.Patient_ID) AS Duplicate_issues, 
-SUM(CASE WHEN w.StartDate = w.EndDate OR d.StartDate = d.EndDate THEN 1 ELSE 0 END) AS one_cancelled
+MAX(CASE WHEN w.StartDate = w.EndDate OR d.StartDate = d.EndDate THEN 1 ELSE 0 END) AS one_cancelled
 FROM #allpts d
 INNER JOIN (SELECT * FROM #allpts WHERE anticoag = 'warfarin') w 
   ON d.Patient_ID = w.Patient_ID and d.StartDate = w.StartDate
@@ -261,14 +330,14 @@ with closing_connection(dbconn) as connection:
 
     # insert linkable data if using dummy data
     if 'OPENCoronaExport' in dbconn:
-        connection.execute('''INSERT INTO #allpts (Patient_ID, anticoag, StartDate, Startmonth)
-        VALUES ('1486439', 'doac', 20180301', '20180301')
-        INSERT INTO  #allpts (Patient_ID, anticoag, StartDate, Startmonth)
-        VALUES ('1486439', 'warfarin', '20180301', '20180301') 
-        INSERT INTO  #allpts (Patient_ID, anticoag, StartDate, Startmonth)
-        VALUES ('1486439', 'warfarin', '20180305', '20180301')''')
-    else:
-        pass
+        date_fields=["StartDate", "EndDate"]
+        choices={"anticoag":["warfarin","DOAC"]}
+        dummy_data = generate_dummy_data(date_fields, month_field="StartDate", multiple_choice=choices)
+        # small fixes to dummy data:
+        dummy_data = dummy_data.rename(columns={"StartDate_month":"Startmonth"})
+        dummy_data["EndDate"] = np.where(dummy_data["EndDate"]<dummy_data["StartDate"],dummy_data["StartDate"], dummy_data["EndDate"])
+        insert_dummy_data(dummy_data, "#allpts")
+
     
     df1 = pd.read_sql(query1, connection)
     df2 = pd.read_sql(query2, connection)
@@ -284,9 +353,6 @@ out3 = df3.set_index("Startmonth")
 
 out1 = out1.join(out2)
 out1 = out1.rename(columns={"patient_count":"total_anticoag_patients"})
-for c in out1.columns:
-    out1[f"{c} (thousands)"] = (out1[c]/1000).round(1)
-    out1 = out1.drop(c, 1)
 
 # export data to csv
 out1.replace([1,2,3,4,5], np.NaN).to_csv(os.path.join("..","output","warf_doac_issues.csv"))
@@ -366,7 +432,6 @@ LEFT JOIN #rpts2 w ON a.Patient_ID = w.Patient_ID AND DATEFROMPARTS(YEAR(w.Start
 AND DATEFROMPARTS(YEAR(w.EndDate),MONTH(w.EndDate),1) >= issuemonth 
 AND w.anticoag = 'warfarin'
 ORDER BY a.Patient_ID
-
 '''
 
 query = '''SELECT  
@@ -392,13 +457,21 @@ with closing_connection(dbconn) as connection:
     connection.execute(sql1)
     connection.execute(sql2)
     
-    # insert linkable data into warfarin table if using dummy data
+    # insert linkable data if using dummy data
     if 'OPENCoronaExport' in dbconn:
-        connection.execute('''INSERT INTO #warfr2 (Patient_ID, StartDate, EndDate)
-        VALUES ('1486439', '20180301', '20180301');
-        INSERT INTO #doacr2 (Patient_ID, StartDate, EndDate)
-        VALUES ('1486439', '20180301', '99991201')
-        ''' )    
+        date_fields=["issue"]
+        dummy_data = generate_dummy_data(date_fields, month_field="issue")
+        # small fixes to dummy data:
+        dummy_data = dummy_data.rename(columns={"issue_month":"issuemonth"}).drop("issue", axis=1)
+        insert_dummy_data(dummy_data, "#temp")
+        
+        date_fields=["StartDate", "EndDate"]
+        choices={"anticoag":["warfarin","DOAC"]}
+        dummy_data = generate_dummy_data(date_fields, multiple_choice=choices)
+        # small fixes to dummy data:
+        dummy_data["EndDate"] = np.where(dummy_data["EndDate"]<dummy_data["StartDate"],dummy_data["StartDate"], dummy_data["EndDate"])
+        insert_dummy_data(dummy_data, "#rpts2")
+
     else:
         pass
     
@@ -526,10 +599,20 @@ with closing_connection(dbconn) as connection:
     
     # insert linkable data into warfarin table if using dummy data
     if 'OPENCoronaExport' in dbconn:
-        connection.execute('''INSERT INTO #warf3 (Patient_ID, warfEndmonth)
-        VALUES ('1486439', '20181001')''' )    
-    else:
-        pass
+        date_fields=["latest_start"]
+        dummy_data = generate_dummy_data(date_fields, month_field="latest_start")
+        # small fixes to dummy data:
+        dummy_data = dummy_data.rename(columns={"latest_start_month":"doacStartmonth"})
+        insert_dummy_data(dummy_data, "#doacR")
+        
+        date_fields=["earliest_start", "EndDate"]
+        choices={"anticoag":["warfarin","DOAC"]}
+        dummy_data = generate_dummy_data(date_fields, month_field="EndDate", multiple_choice=choices)
+        # small fixes to dummy data:
+        dummy_data = dummy_data.rename(columns={"EndDate_month":"Endmonth"})
+        dummy_data["earliest_start"] = np.where(dummy_data["EndDate"]<dummy_data["earliest_start"],dummy_data["EndDate"], dummy_data["earliest_start"])
+        dummy_data = dummy_data.drop("EndDate", axis=1)
+        insert_dummy_data(dummy_data, "#warfdoac")
     
     connection.execute(sql3)
     df6 = pd.read_sql(query, connection)
@@ -568,31 +651,21 @@ def switching(dates):
     b_start_2020, b_end_2020, f_end_2020 = dates[0], dates[1], dates[2]
     b_start_2019, b_end_2019, f_end_2019 = dates[3], dates[4], dates[5]
 
-    # Warfarin patients in baseline period
+    # Warfarin and DOAC patients in baseline period
     sql1 = f'''SELECT
     Patient_ID,
     CASE WHEN StartDate >= '{b_start_2020}' AND StartDate < '{b_end_2020}' THEN '2020' ELSE '2019' END AS year,
-    MAX(StartDate) AS WarfLatestIssue
-    INTO #warf
+    CASE WHEN MultilexDrug_ID in {warf} THEN 'warfarin' ELSE 'DOAC' END AS 'anticoag',
+    MAX(StartDate) AS LatestIssue
+    INTO #baseline
     FROM
       MedicationIssue
     WHERE
       ((StartDate >= '{b_start_2019}' AND StartDate < '{b_end_2019}') OR (StartDate >= '{b_start_2020}' AND StartDate < '{b_end_2020}')) AND
-      MultilexDrug_ID in {warf}
-    GROUP BY Patient_ID, CASE WHEN StartDate >= '{b_start_2020}' AND StartDate < '{b_end_2020}' THEN '2020' ELSE '2019' END'''
-    
-    # DOAC patients in baseline period
-    sql2 = f'''SELECT
-    Patient_ID,
-    CASE WHEN StartDate BETWEEN '{b_start_2020}' AND '{b_end_2020}' THEN '2020' ELSE '2019' END AS year
-    INTO #doac_prev
-    FROM
-      MedicationIssue
-    WHERE
-      (StartDate BETWEEN '{b_start_2019}' AND '{b_end_2019}' OR StartDate BETWEEN '{b_start_2020}' AND '{b_end_2020}') AND
-      MultilexDrug_ID in {doac}
-    GROUP BY Patient_ID, CASE WHEN StartDate BETWEEN '{b_start_2020}' AND '{b_end_2020}' THEN '2020' ELSE '2019' END'''
-    
+      (MultilexDrug_ID in {warf} OR MultilexDrug_ID in {doac})
+    GROUP BY Patient_ID, CASE WHEN StartDate >= '{b_start_2020}' AND StartDate < '{b_end_2020}' THEN '2020' ELSE '2019' END,
+      CASE WHEN MultilexDrug_ID in {warf} THEN 'warfarin' ELSE 'DOAC' END'''
+     
     # DOAC patients in follow up period - detailed
     sql3a = f'''SELECT DISTINCT
     Patient_ID,
@@ -665,30 +738,32 @@ def switching(dates):
     # join warfarin and doac patients
     sql7 = f'''
     SELECT w.Patient_ID, w.year,
-    w.WarfLatestIssue, 
+    w.LatestIssue AS WarfLatestIssue, 
     CASE WHEN w2.Patient_ID IS NOT NULL AND doacStart IS NULL THEN 1 ELSE 0 END AS continued_warfarin_flag,
-    CASE WHEN doacStart IS NOT NULL THEN 1 ELSE 0 END AS switch_flag,
+    CASE WHEN d.doacStart IS NOT NULL THEN 1 ELSE 0 END AS switch_flag,
     CASE WHEN w2.WarfLatestIssue > doacStart THEN 1 ELSE 0 END AS switch_back_flag,
-    DATEFROMPARTS(YEAR(doacStart),MONTH(doacStart),1) AS doacStartmonth,
+    DATEFROMPARTS(YEAR(d.doacStart),MONTH(d.doacStart),1) AS doacStartmonth,
     CASE WHEN i.Patient_ID IS NOT NULL THEN 1 ELSE 0 END AS inr_flag,
     CASE WHEN ttr.Patient_ID IS NOT NULL THEN 1 ELSE 0 END AS ttr_flag,
     CASE WHEN w2.Patient_ID IS NOT NULL AND doacStart IS NULL AND i.Patient_ID IS NOT NULL THEN 1 ELSE 0 END AS continued_warfarin_had_inr,
     CASE WHEN w2.Patient_ID IS NOT NULL AND doacStart IS NULL AND ttr.Patient_ID IS NOT NULL THEN 1 ELSE 0 END AS continued_warfarin_had_ttr,
     t.MultilexDrug_ID AS first_doac_type
     INTO #out
-    FROM #warf w
-    LEFT JOIN #doac_prev dp ON dp.Patient_ID = w.Patient_ID AND dp.year = w.year -- doac in baseline period (exclude these patients)
+    FROM #baseline w
+    LEFT JOIN #baseline dp ON dp.Patient_ID = w.Patient_ID AND dp.year = w.year AND dp.anticoag = 'DOAC' -- doac in baseline period (exclude these patients)
     LEFT JOIN #doac d ON d.Patient_ID = w.Patient_ID AND d.year = w.year -- doac in follow up period
     LEFT JOIN #warf2 w2 ON w.Patient_ID = w2.Patient_ID AND w.year = w2.year -- warfarin in follow up period
     LEFT JOIN #doac_type_b t ON w.Patient_ID = t.Patient_ID AND w.year = t.year-- doac type
     LEFT JOIN #inr i ON w.Patient_ID = i.Patient_ID AND i.test='INR'  AND w.year = i.year   -- INR tests
     LEFT JOIN #inr ttr ON w.Patient_ID = ttr.Patient_ID AND ttr.test='TTR'  AND w.year = ttr.year   -- INR TTRs recorded
 
-    WHERE dp.Patient_ID IS NULL -- exclude pts who have already had doacs in baseline period
+    WHERE w.anticoag = 'warfarin' AND
+      dp.Patient_ID IS NULL -- exclude pts who have already had doacs in baseline period
 
     ORDER BY d.Patient_ID
     ''' 
 
+    # output summary data for switching
     query = f'''
     SELECT 
     year,
@@ -703,7 +778,8 @@ def switching(dates):
     FROM #out
     GROUP BY year
     '''
-
+    
+    # output summary of doac types
     query2 = f'''
     SELECT 
     first_doac_type,
@@ -725,21 +801,22 @@ def switching(dates):
         connection.execute(sql6)
         # insert linkable data into warfarin table if using dummy data
         if 'OPENCoronaExport' in dbconn:
-            connection.execute('''INSERT INTO #warf (Patient_ID, WarfLatestIssue, year)
-            VALUES ('1486439', '20200201', 2020)''' )    
-            connection.execute('''INSERT INTO #doac (Patient_ID, doacStart, year)
-            VALUES ('1486439', '20200301', 2020)''' ) 
-            connection.execute('''INSERT INTO #warf2 (Patient_ID, WarfLatestIssue, year)
-            VALUES ('1486439', '20200501', 2020)''' )    
-            connection.execute('''INSERT INTO #doac_type_b (Patient_ID, year, MultilexDrug_ID)
-            VALUES ('1486439', '16026;1;0')''' ) 
-        else:
-            pass
+            # #out table (not very useful but faster than adding to several temp tables!)
+            date_fields=["WarfLatestIssue", "doacStart"]
+            multiple_choice={"year":['2019','2020']}
+            exclusive_choices={"continued_warfarin_flag":[0,1],"switch_flag":[0,1],"switch_back_flag":[0,1],"inr_flag":[0,1],"ttr_flag":[0,1],
+                               "continued_warfarin_had_inr":[0,1],"continued_warfarin_had_ttr":[0,1],
+                               "first_doac_type":list(doac)}
+            dummy_data = generate_dummy_data(date_fields, month_field="doacStart", multiple_choice=multiple_choice, exclusive_choices=exclusive_choices)
+            # small fixes to dummy data:
+            dummy_data = dummy_data.rename(columns={"doacStart_month":"doacStartmonth"})
+            dummy_data = dummy_data.drop("doacStart", axis=1)
+            insert_dummy_data(dummy_data, "#out")
 
-        connection.execute(sql7)
-        out1 = pd.read_sql(query, connection)
-        out2 = pd.read_sql(query2, connection)
-        display("completed run")
+            connection.execute(sql7)
+            out1 = pd.read_sql(query, connection)
+            out2 = pd.read_sql(query2, connection)
+            display("completed run")
         
         return out1, out2
 
