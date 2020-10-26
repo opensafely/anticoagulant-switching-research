@@ -328,7 +328,7 @@ GROUP BY Startmonth'''
 
 # total patients with doac and warfarin issued same day
 query3 = f'''SELECT d.Startmonth, COUNT(DISTINCT d.Patient_ID) AS Duplicate_issues, 
-MAX(CASE WHEN w.StartDate = w.EndDate OR d.StartDate = d.EndDate THEN 1 ELSE 0 END) AS one_cancelled
+SUM(CASE WHEN w.StartDate = w.EndDate OR d.StartDate = d.EndDate THEN 1 ELSE 0 END) AS one_cancelled
 FROM #allpts d
 INNER JOIN (SELECT * FROM #allpts WHERE anticoag = 'warfarin') w 
   ON d.Patient_ID = w.Patient_ID and d.StartDate = w.StartDate
@@ -825,10 +825,10 @@ def switching(dates):
             dummy_data = dummy_data.drop("doacStart", axis=1)
             insert_dummy_data(dummy_data, "#out")
 
-            connection.execute(sql7)
-            out1 = pd.read_sql(query, connection)
-            out2 = pd.read_sql(query2, connection)
-            display("completed run")
+        connection.execute(sql7)
+        out1 = pd.read_sql(query, connection)
+        out2 = pd.read_sql(query2, connection)
+        display("completed run")
         
         return out1, out2
 
@@ -1063,9 +1063,13 @@ with closing_connection(dbconn) as connection:
             VALUES ('1486439')''' )   
         df = pd.read_sql(query, connection)
         df2 = pd.read_sql(query2, connection)
-    df_out = pd.concat([df_out, df])
-    df_out2 = pd.concat([df_out2, df2])
-    display(f"{mindate}... complete!")
+        connection.execute("DROP TABLE #warf")
+        connection.execute("DROP TABLE #doac")
+        connection.execute("DROP TABLE #inr")
+        connection.execute("DROP TABLE #high_inr")
+        df_out = pd.concat([df_out, df])
+        df_out2 = pd.concat([df_out2, df2])
+        display(f"{mindate}... complete!")
 
 # -
 
@@ -1086,19 +1090,21 @@ plot_line_chart([dfp[["total tests","patients tested"]]], titles,
 # -
 
 titles = ["Monthly rate of INR testing\n per 1000 patients on warfarin"]
-plot_line_chart([dfp[["rate per 1000"]]], titles, 
+plot_line_chart([dfp[["patients tested"]]], titles, 
                 ylabels={0:"Patients tested per 1000 eligible patients"})
 
 # +
-dfp = df_out2.copy()
+dfp = df_out.drop("denominator",1).merge(df_out2, left_on="INR_month", right_on="high_INR_month", suffixes=["_tests","_high"]).drop("INR_month",1)
 dfp["high_INR_month"] = pd.to_datetime(dfp["high_INR_month"])
 dfp = dfp.set_index("high_INR_month")
 
-dfp["patients high"] = 1000*dfp["patient_count"]/dfp["denominator"]
+dfp["per 1000 warfarin pts"] = 1000*dfp["patient_count_high"]/dfp["denominator"]
+dfp["per 1000 INR tests"] = 1000*dfp["patient_count_high"]/dfp["test_count"]
+dfp["per 1000 pts tested"] = 1000*dfp["patient_count_high"]/dfp["patient_count_tests"]
 
-titles = ["Monthly rate of high INRs\n per 1000 patients on warfarin"]
-plot_line_chart([dfp[["patients high"]]], titles, 
-                ylabels={0:"Patients with High INRs per 1000 eligible patients"})
+titles = ["Monthly rate of high INRs recorded in warfarin patients"]
+plot_line_chart([dfp[["per 1000 warfarin pts", "per 1000 INR tests", "per 1000 pts tested"]]], titles, 
+                ylabels={0:"Patients with High INRs per 1000 patients/tests"})
 # -
 
 # ## Summary INR testing data
@@ -1115,6 +1121,7 @@ Difference in monthly rate:   **{diff}** patients per 1000 eligible patients ({d
 
 # # Time in therapeutic range
 
+# +
 # check for presence of each possible INR and TTR code
 query = '''select ctv3code, count(*) from CodedEvent
         where ctv3code IN ('42QE.','YavzQ', '42QE2', 'Xaa68', '.42QE','Y7FIy',
@@ -1124,7 +1131,9 @@ query = '''select ctv3code, count(*) from CodedEvent
         AND YEAR(ConsultationDate) = 2020
         GROUP BY ctv3code
         '''
-df = pd.read_sql(query, cnxn)
+
+with closing_connection(dbconn) as connection:
+    df = pd.read_sql(query, connection)
 df
 
 # +

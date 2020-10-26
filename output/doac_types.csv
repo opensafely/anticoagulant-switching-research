@@ -1,17 +1,17 @@
 period,year,chemical,patient_count,%
-June-Aug,2019,Apixaban,2900.0,49.5
+June-Aug,2019,Apixaban,2900.0,49.4
 June-Aug,2019,Dabigatran etexilate,90.0,1.6
 June-Aug,2019,Edoxaban,1110.0,18.9
-June-Aug,2019,Rivaroxaban,1750.0,30.0
-June-Aug,2020,Apixaban,2490.0,40.4
+June-Aug,2019,Rivaroxaban,1760.0,30.0
+June-Aug,2020,Apixaban,2550.0,40.3
 June-Aug,2020,Dabigatran etexilate,40.0,0.6
-June-Aug,2020,Edoxaban,2060.0,33.3
-June-Aug,2020,Rivaroxaban,1580.0,25.7
-March-May,2019,Apixaban,3440.0,51.2
+June-Aug,2020,Edoxaban,2120.0,33.5
+June-Aug,2020,Rivaroxaban,1620.0,25.6
+March-May,2019,Apixaban,3510.0,51.2
 March-May,2019,Dabigatran etexilate,120.0,1.8
-March-May,2019,Edoxaban,1020.0,15.2
-March-May,2019,Rivaroxaban,2140.0,31.8
-March-May,2020,Apixaban,6680.0,33.5
+March-May,2019,Edoxaban,1040.0,15.2
+March-May,2019,Rivaroxaban,2180.0,31.8
+March-May,2020,Apixaban,6710.0,33.5
 March-May,2020,Dabigatran etexilate,120.0,0.6
-March-May,2020,Edoxaban,7620.0,38.2
-March-May,2020,Rivaroxaban,5530.0,27.7
+March-May,2020,Edoxaban,7620.0,38.1
+March-May,2020,Rivaroxaban,5550.0,27.7
