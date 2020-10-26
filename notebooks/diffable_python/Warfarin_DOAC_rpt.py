@@ -112,7 +112,7 @@ high_inr = codelist_to_tuple(codelist)
 
 # ## Create function for plotting charts
 
-def plot_line_chart(dfs, titles, ylabels={}, loc='lower left', ymins={}):
+def plot_line_chart(dfs, titles, ylabels=None, loc='lower left', ymins=None):
     '''
     Plot a line chart for each df in list. Plots each column as a separate line. Index of each df should be individual months (datetimes). 
     
@@ -120,13 +120,19 @@ def plot_line_chart(dfs, titles, ylabels={}, loc='lower left', ymins={}):
     dfs (list): dataframes to plot
     titles (list): strings for titles
     loc (str): location to place legend on chart
-    ylabel (dict): any ylabels to change from the default 'Number of patients', e.g. {1: 'Rate per 1000'}
+    ylabels (dict): any ylabels to change from the default 'Number of patients', e.g. {1: 'Rate per 1000'}
     ymins (dict): adjust lower y axis limit if required
     
     OUTPUTS:
     chart
     '''
-
+    # fill None type dict variables with empty dicts
+    if ylabels is None:
+        ylabels = {}
+        
+    if ymins is None:
+        ymins = {}
+        
     # count how many dataframes are being plotted
     charts = len(dfs)
     
@@ -217,7 +223,7 @@ def plot_line_chart(dfs, titles, ylabels={}, loc='lower left', ymins={}):
 # +
 
 # randomly assign dates to patients
-def generate_dummy_data(date_fields, month_field=None, multiple_choice={}, exclusive_choices={}, size=1000):
+def generate_dummy_data(date_fields, month_field=None, multiple_choice=None, exclusive_choices=None, size=1000):
     
     '''Generate a dataframe of dummy data
     
@@ -238,6 +244,9 @@ def generate_dummy_data(date_fields, month_field=None, multiple_choice={}, exclu
     
     patient_subset = patient_ids
     
+    if multiple_choice is None:
+        multiple_choice = {}
+        
     for c in multiple_choice: # e.g. {"anticoag":["warfarin","doac"]} each patient can be duplicted here to have several of each choice
         patient_subset = patient_subset.sample(int(patient_ids.shape[0]*0.5), random_state=1, replace=True)
         for item in multiple_choice[c]:
@@ -245,6 +254,9 @@ def generate_dummy_data(date_fields, month_field=None, multiple_choice={}, exclu
             out[c] = item
             p2 = p2.append(out).reset_index(drop=True)
     
+    if exclusive_choices is None:
+        exclusive_choices = {}
+        
     for i, c in enumerate(exclusive_choices): # e.g. {"flag":[0,1]}
         out = pd.Series(exclusive_choices[c], name=c).sample(p2.shape[0],replace=True).reset_index()
         p2 = pd.concat([p2, out], axis=1, sort=False).drop("index",1)
