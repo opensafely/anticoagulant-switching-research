@@ -68,7 +68,7 @@ study = StudyDefinition(
         "2020-03-16",
         returning="pseudo_id",
         return_expectations={
-            "int": {"distribution": "normal", "mean": 1000, "stddev": 100},
+            "int": {"distribution": "normal", "mean": 100, "stddev": 5},
             "incidence": 1,
         },
     ),
@@ -253,7 +253,7 @@ study = StudyDefinition(
         renal_function_test_codes,
         between=["2019-11-16", "2020-06-15"],
         return_expectations={
-            "incidence": 0.95,
+            "incidence": 0.8,
         },
     ),
     # renal function test after march
