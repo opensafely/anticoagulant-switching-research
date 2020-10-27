@@ -251,7 +251,7 @@ study = StudyDefinition(
     # renal function test prior to march? (6 months)
     prior_rft=patients.with_these_clinical_events(
         renal_function_test_codes,
-        between=["2019-11-16", "2020-03-15"],
+        between=["2019-11-16", "2020-06-15"],
         return_expectations={
             "incidence": 0.95,
         },
