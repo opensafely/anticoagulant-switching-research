@@ -127,21 +127,21 @@ study = StudyDefinition(
         {
             "1": """
                     warfarin_2_years
+                    AND NOT warfarin_6_years
+                    AND NOT warfarin_8_years
+                    AND NOT warfarin_over_8_years
                  """,
             "2": """
                     warfarin_6_years
-                    AND NOT warfarin_2_years
+                    AND NOT warfarin_8_years
+                    AND NOT warfarin_over_8_years
                  """,
             "3": """
                     warfarin_8_years
-                    AND NOT warfarin_2_years
-                    AND NOT warfarin_6_years
+                    AND NOT warfarin_over_8_years
                  """,
             "4": """
                     warfarin_over_8_years
-                    AND NOT warfarin_2_years
-                    AND NOT warfarin_6_years
-                    AND NOT warfarin_8_years
                  """,
             "0": "DEFAULT",
         },
