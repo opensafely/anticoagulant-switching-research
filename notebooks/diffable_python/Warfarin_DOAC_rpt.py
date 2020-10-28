@@ -792,7 +792,7 @@ def switching(dates):
     SUM(inr_flag) AS inr_count,
     SUM(ttr_flag) AS ttr_count,
     SUM(continued_warfarin_had_inr) AS continued_warfarin_had_inr,
-    SUM(continued_warfarin_had_inr) AS continued_warfarin_had_high_inr,
+    SUM(continued_warfarin_had_high_inr) AS continued_warfarin_had_high_inr,
     SUM(continued_warfarin_had_ttr) AS continued_warfarin_had_ttr
     FROM #out
     GROUP BY year
@@ -823,7 +823,7 @@ def switching(dates):
             date_fields=["WarfLatestIssue", "doacStart"]
             multiple_choice={"year":['2019','2020']}
             exclusive_choices={"continued_warfarin_flag":[0,1],"switch_flag":[0,1],"switch_back_flag":[0,1],"inr_flag":[0,1],"ttr_flag":[0,1],
-                               "continued_warfarin_had_inr":[0,1],"continued_warfarin_had_ttr":[0,1],
+                               "continued_warfarin_had_inr":[0,1],"continued_warfarin_had_high_inr":[0,1],"continued_warfarin_had_ttr":[0,1],
                                "first_doac_type":list(doac)}
             dummy_data = generate_dummy_data(date_fields, month_field="doacStart", multiple_choice=multiple_choice, exclusive_choices=exclusive_choices)
             # small fixes to dummy data:
@@ -869,17 +869,20 @@ def summarise_switching(df, p):
     out["period"] = np.where(p==1, "March-May", "June-Aug")
     out["baseline warfarin patients (thousands)"] = (out["baseline_warfarin_patients"]/1000).round(1)
     out["switched (thousands)"] = (out["switch_flag"]/1000).round(1)
+    
     for c in ["switch_flag","continued_warfarin_flag"]:
         c2 = c.replace("_flag","")
         out[f"{c2} (%)"] = (100*out[c]/out["baseline_warfarin_patients"]).round(1)
 
+    out["switched back (thousands)"] = (out["switch_back_flag"]/1000).round(1)
     out["switched back (% of switchers)"] = (100*out["switch_back_flag"]/out["switch_flag"]).round(1)
 
-    for c in ["continued_warfarin_had_inr","continued_warfarin_had_ttr"]:
+    for c in ["continued_warfarin_had_inr","continued_warfarin_had_ttr","continued_warfarin_had_high_inr"]:
         c2 = c.replace("continued_warfarin_","")
+        out[f"{c} (thousands)"] = (out[c]/1000).round(1)
         out[f"{c2} (% of continued)"] = (100*out[c]/out["continued_warfarin_flag"]).round(1)
 
-    out = out.drop(["continued_warfarin_had_inr","continued_warfarin_had_ttr","switch_flag", "baseline_warfarin_patients", "continued_warfarin_flag"], 1)
+    out = out.drop(["continued_warfarin_had_inr","continued_warfarin_had_ttr","continued_warfarin_had_high_inr","switch_flag","switch_back_flag", "baseline_warfarin_patients", "continued_warfarin_flag","inr_count","ttr_count"], 1)
     out = out.rename(columns={"switch_flag":"switched"}).sort_values(by="year")
     return out
 
@@ -930,10 +933,10 @@ DATEFROMPARTS(YEAR(ConsultationDate), MONTH(ConsultationDate),1) AS month,
 CASE WHEN CTV3Code in {inr_codes} THEN 'inr' ELSE 'high_inr' END AS codedevent,
 CASE WHEN CTV3Code in {inr_codes} AND NumericValue > 100 THEN 'over 100'
   WHEN CTV3Code in {inr_codes} AND NumericValue > 8 THEN 'over 8'
-  WHEN CTV3Code in {inr_codes} AND NumericValue = 8 THEN '8 exactly' 
+  WHEN CTV3Code in {inr_codes} AND NumericValue = 8 THEN '8 exactly'
+  WHEN CTV3Code in {inr_codes} AND NumericValue IN (0,-1) THEN 'no value'  
   WHEN CTV3Code in {inr_codes} AND NumericValue < 8 THEN 'under 8'
   WHEN CTV3Code in {inr_codes} AND NumericValue IS NULL THEN 'no value' 
-  WHEN CTV3Code in {inr_codes} AND NumericValue IN (0,-1) THEN 'no value' 
   ELSE 'high-INR' END AS classification,
 COUNT (DISTINCT Patient_ID) AS pt_count,
 COUNT(*) as count
@@ -946,17 +949,20 @@ CASE WHEN CTV3Code in {inr_codes} THEN 'inr' ELSE 'high_inr' END,
 CASE WHEN CTV3Code in {inr_codes} AND NumericValue > 100 THEN 'over 100'
   WHEN CTV3Code in {inr_codes} AND NumericValue > 8 THEN 'over 8'
   WHEN CTV3Code in {inr_codes} AND NumericValue = 8 THEN '8 exactly' 
+  WHEN CTV3Code in {inr_codes} AND NumericValue IN (0,-1) THEN 'no value' 
   WHEN CTV3Code in {inr_codes} AND NumericValue < 8 THEN 'under 8'
   WHEN CTV3Code in {inr_codes} AND NumericValue IS NULL THEN 'no value' 
-  WHEN CTV3Code in {inr_codes} AND NumericValue IN (0,-1) THEN 'no value' 
   ELSE 'high-INR' END
 '''
 
 with closing_connection(dbconn) as connection:
     inr_test_test = pd.read_sql(sql, connection)
-    
-inr_test_test
+  
 # -
+
+Test = inr_test_test.loc[(inr_test_test["month"]<date(2020,10,1))&(inr_test_test["classification"]!="over 100")]
+Test = Test.set_index(["month","codedevent","classification"]).unstack(level=0)
+10*((Test/10).round(0))
 
 # # INR testing
 
@@ -986,24 +992,13 @@ GROUP BY Patient_ID, MultilexDrug_ID, StartDate
 sqlb = f'''select 
 Patient_ID,
 ConsultationDate,
-CASE WHEN CTV3Code in {inr_codes} THEN 'inr' ELSE 'high_inr' END AS codedevent,
 MAX(NumericValue) AS highest_value,
 COUNT(*) AS test_count
 INTO #inr_all
 FROM CodedEvent e
-WHERE (e.CTV3Code in {inr_codes} OR e.CTV3Code in {high_inr})
+WHERE e.CTV3Code in {inr_codes}
 AND ConsultationDate >= {base}
-GROUP BY Patient_ID, CASE WHEN CTV3Code in {inr_codes} THEN 'inr' ELSE 'high_inr' END, ConsultationDate
-'''
-
-# High INRs
-sqlc = f'''select DISTINCT
-Patient_ID,
-ConsultationDate
-INTO #high_inr_all
-FROM #inr_all
-WHERE (codedevent = 'high_inr' or (codedevent = 'inr' and highest_value >=8))
-AND ConsultationDate >= {base}
+GROUP BY Patient_ID, ConsultationDate
 '''
 
 
@@ -1011,7 +1006,6 @@ with closing_connection(dbconn) as connection:
     # set up common temp tables to query from for each date period
     connection.execute(sqla)
     connection.execute(sqlb)
-    connection.execute(sqlc)
     
     # iterate over months, because when considering who is a warfarin patient we want to look over the last 3 months, which is complex if multiple months analysed together
 
@@ -1052,19 +1046,11 @@ with closing_connection(dbconn) as connection:
         # INR tests
         sql3 = f'''select
         Patient_ID,
+        MAX(CASE WHEN highest_value >8 THEN 1 ELSE 0 END) AS high_inr_over_8,
+        MAX(CASE WHEN highest_value =8 THEN 1 ELSE 0 END) AS high_inr_8,
         SUM(test_count) AS test_count
         INTO #inr
         FROM #inr_all
-        WHERE codedevent = 'inr'
-        AND ConsultationDate >= '{mindate}' AND ConsultationDate < '{maxdate}'
-        GROUP BY Patient_ID
-        '''
-        
-        # high INRs
-        sql4 = f'''select
-        Patient_ID
-        INTO #high_inr
-        FROM #high_inr_all
         WHERE ConsultationDate >= '{mindate}' AND ConsultationDate < '{maxdate}'
         GROUP BY Patient_ID
         '''
@@ -1086,17 +1072,17 @@ with closing_connection(dbconn) as connection:
         query2 = f'''
         SELECT 
         '{month_date}' AS high_INR_month,
-        COUNT(DISTINCT inr.Patient_ID) AS patient_count,
+        COUNT(DISTINCT CASE WHEN high_inr_over_8 = 1 THEN inr.Patient_ID END) AS patient_count_over_8,
+        COUNT(DISTINCT CASE WHEN high_inr_8 = 1 THEN inr.Patient_ID END) AS patient_count_equal_8,
         COUNT(DISTINCT w.Patient_ID) AS denominator
         FROM #warf w   
-        LEFT JOIN #high_inr AS inr ON inr.Patient_ID = w.Patient_ID  -- raised INRs
+        LEFT JOIN #inr AS inr ON inr.Patient_ID = w.Patient_ID AND (high_inr_over_8 = 1 OR high_inr_8 = 1) -- raised INRs
         LEFT JOIN #doac d on w.Patient_ID = d.Patient_ID AND d.doacLatestIssue > w.warfLatestIssue -- check whether patient has switched to doac
         WHERE d.Patient_ID IS NULL -- exclude pts from denominator if they had doac more recently than warfarin
         '''
         connection.execute(sql1)
         connection.execute(sql2)
         connection.execute(sql3)
-        connection.execute(sql4)
         if 'OPENCoronaExport' in dbconn:
             connection.execute('''INSERT INTO #warf (Patient_ID, WarfLatestIssue)
             VALUES ('1486439', '20200201')''' )    
@@ -1109,14 +1095,14 @@ with closing_connection(dbconn) as connection:
         connection.execute("DROP TABLE #warf")
         connection.execute("DROP TABLE #doac")
         connection.execute("DROP TABLE #inr")
-        connection.execute("DROP TABLE #high_inr")
         df_out = pd.concat([df_out, df])
         df_out2 = pd.concat([df_out2, df2])
         display(f"{mindate}... complete!")
 
 # -
 
-df_out.to_csv(os.path.join("..","output","inr_testing.csv"))
+df_out.replace([0,1,2,3,4,5],np.NaN).to_csv(os.path.join("..","output","inr_testing.csv"))
+df_out2.replace([0,1,2,3,4,5],np.NaN).to_csv(os.path.join("..","output","high_inr.csv"))
 
 # ## INR tests for patients on Warfarin (and not DOAC) in previous 3 months
 
@@ -1137,17 +1123,24 @@ plot_line_chart([dfp[["patients tested"]]], titles,
                 ylabels={0:"Patients tested per 1000 eligible patients"})
 
 # +
-dfp = df_out.drop("denominator",1).merge(df_out2, left_on="INR_month", right_on="high_INR_month", suffixes=["_tests","_high"]).drop("INR_month",1)
+dfp = df_out.drop("denominator",1).merge(df_out2, left_on="INR_month", right_on="high_INR_month").drop("INR_month",1)
 dfp["high_INR_month"] = pd.to_datetime(dfp["high_INR_month"])
 dfp = dfp.set_index("high_INR_month")
 
-dfp["per 1000 warfarin pts"] = 1000*dfp["patient_count_high"]/dfp["denominator"]
-dfp["per 1000 INR tests"] = 1000*dfp["patient_count_high"]/dfp["test_count"]
-dfp["per 1000 pts tested"] = 1000*dfp["patient_count_high"]/dfp["patient_count_tests"]
+dfp1 = dfp.copy()
+dfp1["per 1000 warfarin pts"] = 1000*dfp1["patient_count_over_8"]/dfp1["denominator"]
+dfp1["per 1000 INR tests"] = 1000*dfp1["patient_count_over_8"]/dfp1["test_count"]
+dfp1["per 1000 pts tested"] = 1000*dfp1["patient_count_over_8"]/dfp1["patient_count"]
 
-titles = ["Monthly rate of high INRs recorded in warfarin patients"]
-plot_line_chart([dfp[["per 1000 warfarin pts", "per 1000 INR tests", "per 1000 pts tested"]]], titles, 
-                ylabels={0:"Patients with High INRs per 1000 patients/tests"})
+dfp2 = dfp.copy()
+dfp2["per 1000 warfarin pts"] = 1000*dfp2["patient_count_equal_8"]/dfp2["denominator"]
+dfp2["per 1000 INR tests"] = 1000*dfp2["patient_count_equal_8"]/dfp2["test_count"]
+dfp2["per 1000 pts tested"] = 1000*dfp2["patient_count_equal_8"]/dfp2["patient_count"]
+
+titles = ["Monthly rate of high INRs (over 8)\n recorded in warfarin patients", "Monthly rate of high INRs (equal to 8)\n recorded in warfarin patients"]
+plot_line_chart([dfp1[["per 1000 warfarin pts", "per 1000 INR tests", "per 1000 pts tested"]], dfp2[["per 1000 warfarin pts", "per 1000 INR tests", "per 1000 pts tested"]]],
+                titles, 
+                ylabels={0:"Patients with High INRs per 1000 patients/tests", 1:"Patients with High INRs per 1000 patients/tests"})
 # -
 
 # ## Summary INR testing data

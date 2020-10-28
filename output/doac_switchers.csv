@@ -1,5 +1,5 @@
-,year,period,baseline warfarin patients (thousands),switched (thousands),switch (%),continued_warfarin (%),switched back (% of switchers),had_inr (% of continued),had_ttr (% of continued)
-0,2019,March-May,195.0,6.9,3.5,90.9,4.1,83.7,37.9
-1,2020,March-May,164.0,20.0,12.2,83.0,5.8,80.1,38.6
-0,2019,June-Aug,185.9,5.9,3.2,91.4,4.4,82.4,39.1
-1,2020,June-Aug,143.2,6.3,4.4,89.5,4.7,78.8,39.2
+,year,period,baseline warfarin patients (thousands),switched (thousands),switch (%),continued_warfarin (%),switched back (thousands),switched back (% of switchers),continued_warfarin_had_inr (thousands),had_inr (% of continued),continued_warfarin_had_ttr (thousands),had_ttr (% of continued),continued_warfarin_had_high_inr (thousands),had_high_inr (% of continued)
+0,2019,March-May,195.0,6.9,3.5,90.9,0.3,4.1,148.4,83.7,67.2,37.9,0.7,0.4
+1,2020,March-May,164.0,20.0,12.2,83.0,1.2,5.8,109.1,80.1,52.6,38.6,0.7,0.5
+0,2019,June-Aug,185.9,5.9,3.2,91.4,0.3,4.4,140.0,82.4,66.5,39.1,0.6,0.3
+1,2020,June-Aug,143.2,6.3,4.4,89.5,0.3,4.7,101.1,78.8,50.3,39.2,0.4,0.3
