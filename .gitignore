@@ -22,3 +22,6 @@ __pycache__/
 
 # SQL server environment
 environ.txt
+
+# Outputs
+output/

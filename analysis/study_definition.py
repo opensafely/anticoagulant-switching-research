@@ -3,7 +3,7 @@ from cohortextractor import (
     patients,
     codelist_from_csv,
     filter_codes_by_category,
-    combine_codelists
+    combine_codelists,
 )
 
 from codelists import *
@@ -32,21 +32,12 @@ study = StudyDefinition(
         ),
     ),
     ## OUTCOMES (at least one outcome or covariate is required)
-    
     # first DOAC prescription in follow-up period
     doac_next_three_months=patients.with_these_medications(
         doac_codes,
         between=["2020-03-16", "2020-06-15"],
-        returning="date",
-        find_last_match_in_period=False,
-        include_month=True,
-        include_day=True,
-        return_expectations={
-            "date": {"earliest": "2020-03-16", "latest": "2020-06-15"}
-        },
+        return_expectations={"incidence": 0.3},
     ),
-
-
     died_date_ons=patients.died_from_any_cause(
         on_or_after="2020-03-16",
         returning="date_of_death",
@@ -54,9 +45,9 @@ study = StudyDefinition(
         include_day=True,
         return_expectations={"date": {"earliest": "2020-03-16"}},
     ),
-            
     dereg_date=patients.date_deregistered_from_all_supported_practices(
-        on_or_after="2020-03-16", date_format="YYYY-MM",
+        on_or_after="2020-03-16",
+        date_format="YYYY-MM",
     ),
     ## DEMOGRAPHIC INFORMATION
     age=patients.age_as_of(
@@ -72,17 +63,15 @@ study = StudyDefinition(
             "category": {"ratios": {"M": 0.49, "F": 0.51}},
         }
     ),
-    
-    # practice 
+    # practice
     practice_id=patients.registered_practice_as_of(
-    "2020-03-16",
-    returning="pseudo_id",
-    return_expectations={
-        "int": {"distribution": "normal", "mean": 1000, "stddev": 100},
-        "incidence": 1,
+        "2020-03-16",
+        returning="pseudo_id",
+        return_expectations={
+            "int": {"distribution": "normal", "mean": 100, "stddev": 5},
+            "incidence": 1,
         },
-            ),
-    
+    ),
     # STP
     stp=patients.registered_practice_as_of(
         "2020-03-16",
@@ -105,8 +94,6 @@ study = StudyDefinition(
             },
         },
     ),
-
-    
     # ethnicity
     ethnicity=patients.with_these_clinical_events(
         ethnicity_codes,
@@ -118,20 +105,19 @@ study = StudyDefinition(
             "incidence": 0.75,
         },
     ),
-                    
-    # IMD             
+    # IMD
     imd=patients.address_as_of(
         "2020-03-16",
         returning="index_of_multiple_deprivation",
         round_to_nearest=100,
         return_expectations={
             "rate": "universal",
-            "category": {"ratios": {"100": 0.1, "200": 0.2, "300": 0.7}},
+            "category": {
+                "ratios": {"100": 0.2, "200": 0.2, "300": 0.2, "400": 0.2, "500": 0.2}
+            },
         },
     ),
-
     ##  MEDICATIONS
-    
     warfarin_earliest=patients.with_these_medications(
         warfarin_codes,
         on_or_before="2020-03-15",
@@ -143,11 +129,33 @@ study = StudyDefinition(
             "date": {"earliest": "2000-09-16", "latest": "2020-03-15"}
         },
     ),
-
-        
+    warfarin_length=patients.categorised_as(
+        {
+            "1": """
+                    warfarin_earliest < '20200316'
+                    AND warfarin_earliest >= '20180316'
+                 """,
+            "2": """
+                    warfarin_earliest < '20180316'
+                    AND warfarin_earliest >= '20140616'
+                 """,
+            "3": """
+                    warfarin_earliest < '20140616'
+                    AND warfarin_earliest >= '20120316'
+                 """,
+            "4": """
+                    warfarin_earliest < '20120316'
+                 """,
+            "0": "DEFAULT",
+        },
+        return_expectations={
+            "category": {"ratios": {"1": 0.3, "2": 0.1, "3": 0.1, "4": 0.1, "0": 0.4}},
+            "incidence": 1,
+        },
+    ),
     warfarin_last_three_months=patients.with_these_medications(
         warfarin_codes,
-        between=["2020-03-16", "2020-06-15"],
+        between=["2019-12-16", "2020-03-15"],
         returning="date",
         find_last_match_in_period=True,
         include_month=True,
@@ -156,7 +164,6 @@ study = StudyDefinition(
             "date": {"earliest": "2019-09-16", "latest": "2020-03-15"}
         },
     ),
-
     warfarin_next_three_months=patients.with_these_medications(
         warfarin_codes,
         between=["2020-03-16", "2020-06-15"],
@@ -168,7 +175,6 @@ study = StudyDefinition(
             "date": {"earliest": "2019-09-16", "latest": "2020-03-15"}
         },
     ),
-        
     doac_last_three_months=patients.with_these_medications(
         doac_codes,
         between=["2019-12-16", "2020-03-15"],
@@ -180,31 +186,27 @@ study = StudyDefinition(
             "date": {"earliest": "2019-09-16", "latest": "2020-03-15"}
         },
     ),
-
     doac_previously=patients.with_these_medications(
         doac_codes,
         on_or_before="2020-03-15",
         returning="binary_flag",
         return_expectations={"incidence": 0.05},
-    ),    
-    
+    ),
     ## COVARIATES
-    # atrial fibrillation    
+    # atrial fibrillation
     atrial_fibrillation=patients.with_these_clinical_events(
         atrial_fibrillation_codes,
         on_or_before="2020-03-15",
         returning="binary_flag",
         return_expectations={"incidence": 0.05},
     ),
-
-    #DOAC contrainidcation
+    # DOAC contrainidcation
     doac_contraindication=patients.with_these_clinical_events(
         doac_contraindication_codes,
         on_or_before="2020-03-15",
         returning="binary_flag",
         return_expectations={"incidence": 0.05},
     ),
-            
     # creatinine level; to stratify kidney function (6 months)
     creatinine=patients.with_these_clinical_events(
         creatinine_codes,
@@ -213,69 +215,59 @@ study = StudyDefinition(
         returning="numeric_value",
         return_expectations={
             "float": {"distribution": "normal", "mean": 150.0, "stddev": 200.0},
-            "date": {"earliest": "2019-09-16",  "latest": "2020-03-15"},
+            "date": {"earliest": "2019-09-16", "latest": "2020-03-15"},
             "incidence": 0.95,
         },
     ),
-            
-    # chronic-kidney-disease
-    ckd=patients.with_these_clinical_events(
-        ckd_codes,
+    # end stage renal disease
+    esrd=patients.with_these_clinical_events(
+        esrd_codes,
         on_or_before="2020-03-15",
         returning="binary_flag",
-        return_expectations={"incidence": 0.1}, 
-    ),   
-
+        return_expectations={"incidence": 0.1},
+    ),
     # number of INR tests in last 3 months
     inr_test_count=patients.with_these_clinical_events(
         inr_codes,
         between=["2019-12-16", "2020-03-15"],
         returning="number_of_matches_in_period",
         return_expectations={
-        "incidence": 0.6,
+            "incidence": 0.6,
             "int": {"distribution": "normal", "mean": 3, "stddev": 2},
         },
     ),
-            
-    # most recent INR TTR value  (6 months)      
+    # most recent INR TTR value  (6 months)
     ttr_value=patients.with_these_clinical_events(
         ttr_codes,
         returning="numeric_value",
         between=["2019-09-16", "2020-03-15"],
         find_last_match_in_period=True,
         return_expectations={
-        "float": {"distribution": "normal", "mean": 72.0, "stddev": 200.0},
-        "date": {"latest": "2020-03-15"},
-        "incidence":0.35,
+            "float": {"distribution": "normal", "mean": 72.0, "stddev": 200.0},
+            "date": {"latest": "2020-03-15"},
+            "incidence": 0.35,
         },
     ),
-
-    # renal function test prior to march? (6 months)       
+    # renal function test prior to march? (6 months)
     prior_rft=patients.with_these_clinical_events(
         renal_function_test_codes,
-        returning="numeric_value",
-        between=["2019-09-16", "2020-03-15"],
-        find_last_match_in_period=True,
+        between=["2019-11-16", "2020-06-15"],
         return_expectations={
-            "float": {"distribution": "normal", "mean": 150.0, "stddev": 200.0},
-            "date": {"earliest": "2019-07-16",  "latest": "2020-03-15"},
-            "incidence": 0.95,
+            "incidence": 0.8,
         },
     ),
-
-    # renal function test after march       
+    # renal function test after march
     latest_rft=patients.with_these_clinical_events(
         renal_function_test_codes,
         returning="numeric_value",
         between=["2020-03-16", "2020-06-15"],
         find_last_match_in_period=True,
-            return_expectations={
+        return_expectations={
             "float": {"distribution": "normal", "mean": 150.0, "stddev": 200.0},
-            "date": {"earliest": "2020-03-16",  "latest": "2020-06-15"},
+            "date": {"earliest": "2020-03-16", "latest": "2020-06-15"},
             "incidence": 0.95,
         },
     ),
-
     # CAREHOME STATUS
     care_home_type=patients.care_home_status_as_of(
         "2020-03-16",
@@ -295,11 +287,19 @@ study = StudyDefinition(
         },
         return_expectations={
             "rate": "universal",
-            "category": {"ratios": {"PC": 0.05, "PN": 0.05, "PS": 0.05, "U": 0.85,},},
+            "category": {
+                "ratios": {
+                    "PC": 0.05,
+                    "PN": 0.05,
+                    "PS": 0.05,
+                    "U": 0.85,
+                },
+            },
         },
     ),
-
     has_consultation_history=patients.with_complete_gp_consultation_history_between(
-        "2019-09-16", "2020-03-15", return_expectations={"incidence": 0.9},
+        "2019-09-16",
+        "2020-03-15",
+        return_expectations={"incidence": 0.9},
     ),
 )
