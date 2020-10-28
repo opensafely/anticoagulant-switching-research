@@ -219,9 +219,9 @@ study = StudyDefinition(
             "incidence": 0.95,
         },
     ),
-    # chronic-kidney-disease
-    ckd=patients.with_these_clinical_events(
-        ckd_codes,
+    # end stage renal disease
+    esrd=patients.with_these_clinical_events(
+        esrd_codes,
         on_or_before="2020-03-15",
         returning="binary_flag",
         return_expectations={"incidence": 0.1},

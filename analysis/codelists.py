@@ -4,7 +4,7 @@ from cohortextractor import (
 )
 
 
-ckd_codes = codelist_from_csv(
+esrd_codes = codelist_from_csv(
     "codelists/opensafely-chronic-kidney-disease.csv",
     system="ctv3",
     column="CTV3ID",
