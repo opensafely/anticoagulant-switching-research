@@ -22,7 +22,7 @@ study = StudyDefinition(
         (age >=18 AND age <= 110) AND
         has_follow_up AND
         warfarin_last_three_months AND
-        warfarin_earliest <= "20190916" AND
+        warfarin_6_months AND
         NOT doac_last_three_months AND 
         (warfarin_next_three_months OR
         doac_next_three_months)
@@ -118,33 +118,30 @@ study = StudyDefinition(
         },
     ),
     ##  MEDICATIONS
-    warfarin_earliest=patients.with_these_medications(
+    warfarin_6_months=patients.with_these_medications(
         warfarin_codes,
-        on_or_before="2020-03-15",
-        returning="date",
-        find_last_match_in_period=False,
-        include_month=True,
-        include_day=False,
-        return_expectations={
-            "date": {"earliest": "2000-09-16", "latest": "2020-03-15"}
-        },
+        on_or_before="2019-09-16",
+        return_expectations={"incidence": 1},
     ),
     warfarin_length=patients.categorised_as(
         {
             "1": """
-                    warfarin_earliest < '20200316'
-                    AND warfarin_earliest >= '20180316'
+                    warfarin_2_years
+                    AND NOT warfarin_6_years
+                    AND NOT warfarin_8_years
+                    AND NOT warfarin_over_8_years
                  """,
             "2": """
-                    warfarin_earliest < '20180316'
-                    AND warfarin_earliest >= '20140616'
+                    warfarin_6_years
+                    AND NOT warfarin_8_years
+                    AND NOT warfarin_over_8_years
                  """,
             "3": """
-                    warfarin_earliest < '20140616'
-                    AND warfarin_earliest >= '20120316'
+                    warfarin_8_years
+                    AND NOT warfarin_over_8_years
                  """,
             "4": """
-                    warfarin_earliest < '20120316'
+                    warfarin_over_8_years
                  """,
             "0": "DEFAULT",
         },
@@ -152,6 +149,26 @@ study = StudyDefinition(
             "category": {"ratios": {"1": 0.3, "2": 0.1, "3": 0.1, "4": 0.1, "0": 0.4}},
             "incidence": 1,
         },
+        warfarin_2_years=patients.with_these_medications(
+            warfarin_codes,
+            between=["2018-03-16", "2020-03-15"],
+            return_expectations={"incidence": 0.3},
+        ),
+        warfarin_6_years=patients.with_these_medications(
+            warfarin_codes,
+            between=["2014-06-16", "2018-03-15"],
+            return_expectations={"incidence": 0.1},
+        ),
+        warfarin_8_years=patients.with_these_medications(
+            warfarin_codes,
+            between=["2012-03-16", "2014-06-15"],
+            return_expectations={"incidence": 0.1},
+        ),
+        warfarin_over_8_years=patients.with_these_medications(
+            warfarin_codes,
+            on_or_before="2012-03-15",
+            return_expectations={"incidence": 0.1},
+        ),
     ),
     warfarin_last_three_months=patients.with_these_medications(
         warfarin_codes,

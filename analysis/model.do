@@ -4,7 +4,7 @@ log using "output/model", text replace
 import delimited `c(pwd)'/output/input.csv, clear
 
 recode doac_next_three_months .=0
-egen agecat = cut(age), at(18, 65, 75)
+egen agecat = cut(age), at(18, 65, 75, 120)
 recode ethnicity .=0
 xtile imd_cat = imd,nq(5)
 gen care_home_binary = 0
@@ -61,7 +61,7 @@ label define egfr_cat 	1 ">=60" 		///
 label values egfr_cat egfr_cat
 ***************************************************************
 recode prior_rft .=0
-egen inr_cat = cut(inr_test_count), at(0, 1, 4, 7)
+egen inr_cat = cut(inr_test_count), at(0, 1, 4, 7, 1000)
 *warfarin length should already be all non-missing
 recode doac_previously .=0
 recode doac_contraindication .=0
@@ -69,7 +69,7 @@ recode doac_contraindication .=0
 global fixed_variables			///
 		i.agecat				///
 		/*i.ethnicity*/			///
-		i.imd					///
+		i.imd_cat				///
 		i.care_home_binary		///
 		i.atrial_fibrillation	///
 		i.egfr_cat				///
@@ -81,19 +81,17 @@ global fixed_variables			///
 
 		
 foreach var in $fixed_variables{
-	melogit doac_next_three_months `var' || stp: || practice_id:, or
+	melogit doac_next_three_months `var' || stp:, or
 }
 
-melogit doac_next_three_months $fixed_variables || stp: || practice_id:, or
+melogit doac_next_three_months $fixed_variables || stp:, or
 
 predict predictions_f,xb
 qui corr doac_next_three_months predictions_f
 di "R-squared - fixed effects (%): " round(r(rho)^2*100,.1)
 
-predict predictions_r_1 predictions_r_2, reffects
-qui corr doac_next_three_months predictions_r_1
-di "R-squared - random effects (%): " round(r(rho)^2*100,.1)
-qui corr doac_next_three_months predictions_r_2
+predict predictions_r, reffects
+qui corr doac_next_three_months predictions_r
 di "R-squared - random effects (%): " round(r(rho)^2*100,.1)
 
 
