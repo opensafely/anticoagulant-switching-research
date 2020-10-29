@@ -1,0 +1,774 @@
+----------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+      name:  <unnamed>
+       log:  E:\alex\anticoagulant-switching-research\output/model.log
+  log type:  text
+ opened on:  29 Oct 2020, 09:24:43
+
+. 
+. import delimited `c(pwd)'/output/input.csv, clear
+(26 vars, 147,456 obs)
+
+. 
+. recode doac_next_three_months .=0
+(doac_next_three_months: 0 changes made)
+
+. egen agecat = cut(age), at(18, 65, 75, 120)
+
+. recode ethnicity .=0
+(ethnicity: 42589 changes made)
+
+. xtile imd_cat = imd,nq(5)
+
+. gen care_home_binary = 0
+
+. replace care_home_binary = 1 if care_home_type == "PC" | care_home_type == "PN" |care_home_type == "PS"
+(1,631 real changes made)
+
+. recode atrial_fibrillation .=0
+(atrial_fibrillation: 0 changes made)
+
+. 
+. * Sex
+. gen male = 1 if sex == "M"
+(59,716 missing values generated)
+
+. replace male = 0 if sex == "F"
+(59,715 real changes made)
+
+. *********************************eGFR ****************************************
+. * Set implausible creatinine values to missing (Note: zero changed to missing)
+. replace creatinine = . if !inrange(creatinine, 20, 3000) 
+(60,230 real changes made, 60,230 to missing)
+
+. 
+. * Divide by 88.4 (to convert umol/l to mg/dl)
+. gen SCr_adj = creatinine/88.4
+(60,230 missing values generated)
+
+. 
+. gen min = .
+(147,456 missing values generated)
+
+. replace min = SCr_adj/0.7 if male==0
+(35,449 real changes made)
+
+. replace min = SCr_adj/0.9 if male==1
+(51,776 real changes made)
+
+. replace min = min^-0.329  if male==0
+(35,449 real changes made)
+
+. replace min = min^-0.411  if male==1
+(51,776 real changes made)
+
+. replace min = 1 if min<1
+(70,776 real changes made)
+
+. 
+. gen max=.
+(147,456 missing values generated)
+
+. replace max=SCr_adj/0.7 if male==0
+(35,449 real changes made)
+
+. replace max=SCr_adj/0.9 if male==1
+(51,776 real changes made)
+
+. replace max=max^-1.209
+(87,225 real changes made)
+
+. replace max=1 if max>1
+(76,680 real changes made)
+
+. 
+. gen egfr=min*max*141
+(60,231 missing values generated)
+
+. replace egfr=egfr*(0.993^age)
+(87,225 real changes made)
+
+. replace egfr=egfr*1.018 if male==0
+(35,449 real changes made)
+
+. label var egfr "egfr calculated using CKD-EPI formula with no eth"
+
+. 
+. * Categorise into ckd stages
+. egen egfr_cat_all = cut(egfr), at(0, 15, 30, 45, 60, 5000)
+(60231 missing values generated)
+
+. recode egfr_cat_all 0 = 5 15 = 4 30 = 3 45 = 2 60 = 0, generate(ckd_egfr)
+(87225 differences between egfr_cat_all and ckd_egfr)
+
+. /* 
+> 0 "No CKD, eGFR>60"     or missing -- have been shown reasonable in CPRD
+> 2 "stage 3a, eGFR 45-59" 
+> 3 "stage 3b, eGFR 30-44" 
+> 4 "stage 4, eGFR 15-29" 
+> 5 "stage 5, eGFR <15"
+> */
+. gen egfr_cat = .
+(147,456 missing values generated)
+
+. recode egfr_cat . = 3 if egfr < 30
+(egfr_cat: 4369 changes made)
+
+. recode egfr_cat . = 2 if egfr < 60
+(egfr_cat: 31394 changes made)
+
+. recode egfr_cat . = 1 if egfr < .
+(egfr_cat: 51462 changes made)
+
+. replace egfr_cat = 0 if egfr >= .
+(60,231 real changes made)
+
+. label define egfr_cat   1 ">=60"                ///
+>                                                 2 "30-59"               ///
+>                                                 3 "<30"                 ///
+>                                                 0 "Unknown"
+
+. label values egfr_cat egfr_cat
+
+. ***************************************************************
+. recode prior_rft .=0
+(prior_rft: 0 changes made)
+
+. egen inr_cat = cut(inr_test_count), at(0, 1, 4, 7, 1000)
+
+. *warfarin length should already be all non-missing
+. recode doac_previously .=0
+(doac_previously: 0 changes made)
+
+. recode doac_contraindication .=0
+(doac_contraindication: 0 changes made)
+
+. 
+. global fixed_variables                  ///
+>                 i.agecat                                ///
+>                 /*i.ethnicity*/                 ///
+>                 i.imd_cat                               ///
+>                 i.care_home_binary              ///
+>                 i.atrial_fibrillation   ///
+>                 i.egfr_cat                              ///
+>                 i.prior_rft                             ///
+>                 i.inr_cat                               ///
+>                 i.warfarin_length               ///
+>                 i.doac_previously               ///
+>                 i.doac_contraindication
+
+. 
+.                 
+. foreach var in $fixed_variables{
+  2.         melogit doac_next_three_months `var' || stp:, or
+  3. }
+
+Fitting fixed-effects model:
+
+Iteration 0:   log likelihood = -57376.713  
+Iteration 1:   log likelihood = -57042.897  
+Iteration 2:   log likelihood = -57040.316  
+Iteration 3:   log likelihood = -57040.315  
+
+Refining starting values:
+
+Grid node 0:   log likelihood = -54101.899
+
+Fitting full model:
+
+Iteration 0:   log likelihood = -54101.899  (not concave)
+Iteration 1:   log likelihood = -54100.832  (not concave)
+Iteration 2:   log likelihood = -54099.778  (backed up)
+Iteration 3:   log likelihood = -54099.208  (backed up)
+Iteration 4:   log likelihood = -54098.693  
+Iteration 5:   log likelihood = -54098.125  
+Iteration 6:   log likelihood = -54097.543  
+Iteration 7:   log likelihood = -54097.047  
+Iteration 8:   log likelihood = -54096.761  
+Iteration 9:   log likelihood = -54096.703  
+Iteration 10:  log likelihood = -54096.703  
+
+Mixed-effects logistic regression               Number of obs     =    147,434
+Group variable:             stp                 Number of groups  =         31
+
+                                                Obs per group:
+                                                              min =        180
+                                                              avg =    4,755.9
+                                                              max =     14,336
+
+Integration method: mvaghermite                 Integration pts.  =          7
+
+                                                Wald chi2(2)      =    1628.45
+Log likelihood = -54096.703                     Prob > chi2       =     0.0000
+----------------------------------------------------------------------------------------
+doac_next_three_months | Odds Ratio   Std. Err.      z    P>|z|     [95% Conf. Interval]
+-----------------------+----------------------------------------------------------------
+                agecat |
+                   65  |   2.042793   .0614609    23.74   0.000     1.925815    2.166877
+                   75  |   2.869553   .0779251    38.82   0.000     2.720816    3.026421
+                       |
+                 _cons |   .0566791   .0067612   -24.06   0.000     .0448626     .071608
+-----------------------+----------------------------------------------------------------
+stp                    |
+             var(_cons)|   .4120119   .1094115                      .2448328     .693346
+----------------------------------------------------------------------------------------
+Note: Estimates are transformed only in the first equation.
+Note: _cons estimates baseline odds (conditional on zero random effects).
+LR test vs. logistic model: chibar2(01) = 5887.22     Prob >= chibar2 = 0.0000
+
+Fitting fixed-effects model:
+
+Iteration 0:   log likelihood = -57997.778  
+Iteration 1:   log likelihood = -57910.972  
+Iteration 2:   log likelihood = -57910.731  
+Iteration 3:   log likelihood = -57910.731  
+
+Refining starting values:
+
+Grid node 0:   log likelihood = -55034.684
+
+Fitting full model:
+
+Iteration 0:   log likelihood = -55034.684  (not concave)
+Iteration 1:   log likelihood = -55033.599  (not concave)
+Iteration 2:   log likelihood = -55032.526  (backed up)
+Iteration 3:   log likelihood = -55031.565  (backed up)
+Iteration 4:   log likelihood = -55029.289  
+Iteration 5:   log likelihood =   -55026.5  
+Iteration 6:   log likelihood = -55022.904  
+Iteration 7:   log likelihood = -55019.658  
+Iteration 8:   log likelihood = -55018.625  
+Iteration 9:   log likelihood = -55018.625  
+
+Mixed-effects logistic regression               Number of obs     =    147,434
+Group variable:             stp                 Number of groups  =         31
+
+                                                Obs per group:
+                                                              min =        180
+                                                              avg =    4,755.9
+                                                              max =     14,336
+
+Integration method: mvaghermite                 Integration pts.  =          7
+
+                                                Wald chi2(4)      =      65.62
+Log likelihood = -55018.625                     Prob > chi2       =     0.0000
+----------------------------------------------------------------------------------------
+doac_next_three_months | Odds Ratio   Std. Err.      z    P>|z|     [95% Conf. Interval]
+-----------------------+----------------------------------------------------------------
+               imd_cat |
+                    2  |   1.128753    .029663     4.61   0.000     1.072087    1.188415
+                    3  |   1.201833   .0311336     7.10   0.000     1.142336     1.26443
+                    4  |   1.178515   .0307888     6.29   0.000     1.119689    1.240432
+                    5  |   1.199037   .0315846     6.89   0.000     1.138703    1.262568
+                       |
+                 _cons |   .1135596   .0133603   -18.49   0.000     .0901736    .1430105
+-----------------------+----------------------------------------------------------------
+stp                    |
+             var(_cons)|   .4086212   .1086323                      .2426768    .6880398
+----------------------------------------------------------------------------------------
+Note: Estimates are transformed only in the first equation.
+Note: _cons estimates baseline odds (conditional on zero random effects).
+LR test vs. logistic model: chibar2(01) = 5784.21     Prob >= chibar2 = 0.0000
+
+Fitting fixed-effects model:
+
+Iteration 0:   log likelihood = -58060.436  
+Iteration 1:   log likelihood = -57992.811  
+Iteration 2:   log likelihood = -57992.746  
+Iteration 3:   log likelihood = -57992.746  
+
+Refining starting values:
+
+Grid node 0:   log likelihood =  -55042.23
+
+Fitting full model:
+
+Iteration 0:   log likelihood =  -55042.23  (not concave)
+Iteration 1:   log likelihood = -55041.144  (not concave)
+Iteration 2:   log likelihood = -55040.072  (backed up)
+Iteration 3:   log likelihood = -55039.473  (backed up)
+Iteration 4:   log likelihood =  -55038.95  
+Iteration 5:   log likelihood = -55038.369  
+Iteration 6:   log likelihood = -55037.764  
+Iteration 7:   log likelihood = -55037.237  
+Iteration 8:   log likelihood = -55036.924  
+Iteration 9:   log likelihood = -55036.858  
+Iteration 10:  log likelihood = -55036.858  
+
+Mixed-effects logistic regression               Number of obs     =    147,434
+Group variable:             stp                 Number of groups  =         31
+
+                                                Obs per group:
+                                                              min =        180
+                                                              avg =    4,755.9
+                                                              max =     14,336
+
+Integration method: mvaghermite                 Integration pts.  =          7
+
+                                                Wald chi2(1)      =      32.67
+Log likelihood = -55036.858                     Prob > chi2       =     0.0000
+----------------------------------------------------------------------------------------
+doac_next_three_months | Odds Ratio   Std. Err.      z    P>|z|     [95% Conf. Interval]
+-----------------------+----------------------------------------------------------------
+    1.care_home_binary |   1.470497    .099209     5.72   0.000     1.288358    1.678384
+                 _cons |   .1290115   .0150182   -17.59   0.000     .1026928    .1620753
+-----------------------+----------------------------------------------------------------
+stp                    |
+             var(_cons)|   .4090847   .1086442                      .2430817    .6884529
+----------------------------------------------------------------------------------------
+Note: Estimates are transformed only in the first equation.
+Note: _cons estimates baseline odds (conditional on zero random effects).
+LR test vs. logistic model: chibar2(01) = 5911.78     Prob >= chibar2 = 0.0000
+
+Fitting fixed-effects model:
+
+Iteration 0:   log likelihood = -57211.979  
+Iteration 1:   log likelihood = -56833.963  
+Iteration 2:   log likelihood = -56832.947  
+Iteration 3:   log likelihood = -56832.947  
+
+Refining starting values:
+
+Grid node 0:   log likelihood = -53864.994
+
+Fitting full model:
+
+Iteration 0:   log likelihood = -53864.994  (not concave)
+Iteration 1:   log likelihood = -53863.933  (not concave)
+Iteration 2:   log likelihood = -53862.886  (backed up)
+Iteration 3:   log likelihood = -53861.876  
+Iteration 4:   log likelihood = -53861.214  
+Iteration 5:   log likelihood = -53860.482  
+Iteration 6:   log likelihood = -53859.774  
+Iteration 7:   log likelihood = -53859.285  
+Iteration 8:   log likelihood = -53859.159  
+Iteration 9:   log likelihood = -53859.159  
+
+Mixed-effects logistic regression               Number of obs     =    147,434
+Group variable:             stp                 Number of groups  =         31
+
+                                                Obs per group:
+                                                              min =        180
+                                                              avg =    4,755.9
+                                                              max =     14,336
+
+Integration method: mvaghermite                 Integration pts.  =          7
+
+                                                Wald chi2(1)      =    2088.74
+Log likelihood = -53859.159                     Prob > chi2       =     0.0000
+----------------------------------------------------------------------------------------
+doac_next_three_months | Odds Ratio   Std. Err.      z    P>|z|     [95% Conf. Interval]
+-----------------------+----------------------------------------------------------------
+ 1.atrial_fibrillation |    2.46919   .0488347    45.70   0.000     2.375308    2.566784
+                 _cons |   .0662719   .0078652   -22.87   0.000     .0525181    .0836278
+-----------------------+----------------------------------------------------------------
+stp                    |
+             var(_cons)|   .4176679   .1108536                      .2482636    .7026664
+----------------------------------------------------------------------------------------
+Note: Estimates are transformed only in the first equation.
+Note: _cons estimates baseline odds (conditional on zero random effects).
+LR test vs. logistic model: chibar2(01) = 5947.58     Prob >= chibar2 = 0.0000
+
+Fitting fixed-effects model:
+
+Iteration 0:   log likelihood = -57862.194  
+Iteration 1:   log likelihood = -57738.923  
+Iteration 2:   log likelihood = -57738.575  
+Iteration 3:   log likelihood = -57738.575  
+
+Refining starting values:
+
+Grid node 0:   log likelihood = -54782.366
+
+Fitting full model:
+
+Iteration 0:   log likelihood = -54782.366  (not concave)
+Iteration 1:   log likelihood = -54781.286  (not concave)
+Iteration 2:   log likelihood = -54780.219  (backed up)
+Iteration 3:   log likelihood = -54779.634  (backed up)
+Iteration 4:   log likelihood = -54779.106  
+Iteration 5:   log likelihood = -54778.517  
+Iteration 6:   log likelihood = -54777.897  
+Iteration 7:   log likelihood = -54777.347  
+Iteration 8:   log likelihood =  -54777.01  
+Iteration 9:   log likelihood = -54776.935  
+Iteration 10:  log likelihood = -54776.935  
+
+Mixed-effects logistic regression               Number of obs     =    147,434
+Group variable:             stp                 Number of groups  =         31
+
+                                                Obs per group:
+                                                              min =        180
+                                                              avg =    4,755.9
+                                                              max =     14,336
+
+Integration method: mvaghermite                 Integration pts.  =          7
+
+                                                Wald chi2(3)      =     540.45
+Log likelihood = -54776.935                     Prob > chi2       =     0.0000
+----------------------------------------------------------------------------------------
+doac_next_three_months | Odds Ratio   Std. Err.      z    P>|z|     [95% Conf. Interval]
+-----------------------+----------------------------------------------------------------
+              egfr_cat |
+                 >=60  |    1.35801   .0250048    16.62   0.000     1.309876    1.407914
+                30-59  |   1.523134   .0314251    20.39   0.000     1.462771    1.585989
+                  <30  |    .839566   .0449254    -3.27   0.001     .7559739    .9324013
+                       |
+                 _cons |   .1058733   .0123938   -19.18   0.000      .084167    .1331774
+-----------------------+----------------------------------------------------------------
+stp                    |
+             var(_cons)|   .4103318    .108985                      .2438115    .6905833
+----------------------------------------------------------------------------------------
+Note: Estimates are transformed only in the first equation.
+Note: _cons estimates baseline odds (conditional on zero random effects).
+LR test vs. logistic model: chibar2(01) = 5923.28     Prob >= chibar2 = 0.0000
+
+Fitting fixed-effects model:
+
+Iteration 0:   log likelihood = -56468.977  
+Iteration 1:   log likelihood = -55852.741  
+Iteration 2:   log likelihood = -55849.241  
+Iteration 3:   log likelihood =  -55849.24  
+
+Refining starting values:
+
+Grid node 0:   log likelihood =  -53060.35
+
+Fitting full model:
+
+Iteration 0:   log likelihood =  -53060.35  (not concave)
+Iteration 1:   log likelihood = -53059.299  (not concave)
+Iteration 2:   log likelihood = -53058.262  (backed up)
+Iteration 3:   log likelihood = -53057.292  (backed up)
+Iteration 4:   log likelihood = -53056.731  
+Iteration 5:   log likelihood = -53056.157  
+Iteration 6:   log likelihood = -53055.582  
+Iteration 7:   log likelihood = -53055.099  
+Iteration 8:   log likelihood = -53054.828  
+Iteration 9:   log likelihood = -53054.774  
+Iteration 10:  log likelihood = -53054.774  
+
+Mixed-effects logistic regression               Number of obs     =    147,434
+Group variable:             stp                 Number of groups  =         31
+
+                                                Obs per group:
+                                                              min =        180
+                                                              avg =    4,755.9
+                                                              max =     14,336
+
+Integration method: mvaghermite                 Integration pts.  =          7
+
+                                                Wald chi2(1)      =    3506.68
+Log likelihood = -53054.774                     Prob > chi2       =     0.0000
+----------------------------------------------------------------------------------------
+doac_next_three_months | Odds Ratio   Std. Err.      z    P>|z|     [95% Conf. Interval]
+-----------------------+----------------------------------------------------------------
+           1.prior_rft |   2.985893   .0551573    59.22   0.000      2.87972     3.09598
+                 _cons |   .0631406   .0072429   -24.08   0.000     .0504275    .0790588
+-----------------------+----------------------------------------------------------------
+stp                    |
+             var(_cons)|   .3908933   .1037986                      .2322889    .6577913
+----------------------------------------------------------------------------------------
+Note: Estimates are transformed only in the first equation.
+Note: _cons estimates baseline odds (conditional on zero random effects).
+LR test vs. logistic model: chibar2(01) = 5588.93     Prob >= chibar2 = 0.0000
+
+Fitting fixed-effects model:
+
+Iteration 0:   log likelihood = -57731.816  
+Iteration 1:   log likelihood =     -57561  
+Iteration 2:   log likelihood = -57560.709  
+Iteration 3:   log likelihood = -57560.709  
+
+Refining starting values:
+
+Grid node 0:   log likelihood = -54639.193
+
+Fitting full model:
+
+Iteration 0:   log likelihood = -54639.193  (not concave)
+Iteration 1:   log likelihood = -54638.113  (not concave)
+Iteration 2:   log likelihood = -54637.052  (backed up)
+Iteration 3:   log likelihood = -54636.187  (backed up)
+Iteration 4:   log likelihood = -54635.657  
+Iteration 5:   log likelihood = -54635.014  
+Iteration 6:   log likelihood = -54634.288  
+Iteration 7:   log likelihood = -54633.582  
+Iteration 8:   log likelihood = -54633.095  
+Iteration 9:   log likelihood = -54632.971  
+Iteration 10:  log likelihood = -54632.971  
+
+Mixed-effects logistic regression               Number of obs     =    147,434
+Group variable:             stp                 Number of groups  =         31
+
+                                                Obs per group:
+                                                              min =        180
+                                                              avg =    4,755.9
+                                                              max =     14,336
+
+Integration method: mvaghermite                 Integration pts.  =          7
+
+                                                Wald chi2(3)      =     795.47
+Log likelihood = -54632.971                     Prob > chi2       =     0.0000
+----------------------------------------------------------------------------------------
+doac_next_three_months | Odds Ratio   Std. Err.      z    P>|z|     [95% Conf. Interval]
+-----------------------+----------------------------------------------------------------
+               inr_cat |
+                    1  |   1.526194   .0401971    16.05   0.000     1.449408    1.607048
+                    4  |   1.987627   .0547419    24.94   0.000      1.88318    2.097868
+                    7  |   2.034597   .0593949    24.33   0.000     1.921453    2.154403
+                       |
+                 _cons |   .0798018   .0093504   -21.58   0.000     .0634275    .1004033
+-----------------------+----------------------------------------------------------------
+stp                    |
+             var(_cons)|   .3998104   .1060867                      .2376808    .6725337
+----------------------------------------------------------------------------------------
+Note: Estimates are transformed only in the first equation.
+Note: _cons estimates baseline odds (conditional on zero random effects).
+LR test vs. logistic model: chibar2(01) = 5855.48     Prob >= chibar2 = 0.0000
+
+Fitting fixed-effects model:
+
+Iteration 0:   log likelihood = -57989.124  
+Iteration 1:   log likelihood = -57896.814  
+Iteration 2:   log likelihood = -57896.358  
+Iteration 3:   log likelihood = -57896.358  
+
+Refining starting values:
+
+Grid node 0:   log likelihood = -54948.262
+
+Fitting full model:
+
+Iteration 0:   log likelihood = -54948.262  (not concave)
+Iteration 1:   log likelihood = -54947.178  (not concave)
+Iteration 2:   log likelihood = -54946.108  (backed up)
+Iteration 3:   log likelihood = -54945.508  (backed up)
+Iteration 4:   log likelihood = -54944.966  
+Iteration 5:   log likelihood = -54944.351  
+Iteration 6:   log likelihood = -54943.689  
+Iteration 7:   log likelihood = -54943.078  
+Iteration 8:   log likelihood = -54942.683  
+Iteration 9:   log likelihood = -54942.589  
+Iteration 10:  log likelihood = -54942.589  
+
+Mixed-effects logistic regression               Number of obs     =    147,434
+Group variable:             stp                 Number of groups  =         31
+
+                                                Obs per group:
+                                                              min =        180
+                                                              avg =    4,755.9
+                                                              max =     14,336
+
+Integration method: mvaghermite                 Integration pts.  =          7
+
+                                                Wald chi2(3)      =     204.43
+Log likelihood = -54942.589                     Prob > chi2       =     0.0000
+----------------------------------------------------------------------------------------
+doac_next_three_months | Odds Ratio   Std. Err.      z    P>|z|     [95% Conf. Interval]
+-----------------------+----------------------------------------------------------------
+       warfarin_length |
+                    2  |   1.683451   .0798379    10.98   0.000     1.534024    1.847433
+                    3  |   1.879553   .0898215    13.20   0.000     1.711499    2.064108
+                    4  |   1.572316   .0723021     9.84   0.000     1.436804    1.720608
+                       |
+                 _cons |   .0795084   .0099026   -20.33   0.000      .062287    .1014912
+-----------------------+----------------------------------------------------------------
+stp                    |
+             var(_cons)|   .4100485   .1089181                      .2436335    .6901341
+----------------------------------------------------------------------------------------
+Note: Estimates are transformed only in the first equation.
+Note: _cons estimates baseline odds (conditional on zero random effects).
+LR test vs. logistic model: chibar2(01) = 5907.54     Prob >= chibar2 = 0.0000
+
+Fitting fixed-effects model:
+
+Iteration 0:   log likelihood = -58036.266  
+Iteration 1:   log likelihood = -57958.966  
+Iteration 2:   log likelihood = -57958.727  
+Iteration 3:   log likelihood = -57958.727  
+
+Refining starting values:
+
+Grid node 0:   log likelihood = -54992.966
+
+Fitting full model:
+
+Iteration 0:   log likelihood = -54992.966  (not concave)
+Iteration 1:   log likelihood = -54991.882  (not concave)
+Iteration 2:   log likelihood = -54990.811  (backed up)
+Iteration 3:   log likelihood = -54990.213  (backed up)
+Iteration 4:   log likelihood = -54989.598  
+Iteration 5:   log likelihood = -54988.845  
+Iteration 6:   log likelihood = -54987.946  
+Iteration 7:   log likelihood = -54986.992  
+Iteration 8:   log likelihood = -54986.257  
+Iteration 9:   log likelihood = -54986.043  
+Iteration 10:  log likelihood = -54986.043  
+
+Mixed-effects logistic regression               Number of obs     =    147,434
+Group variable:             stp                 Number of groups  =         31
+
+                                                Obs per group:
+                                                              min =        180
+                                                              avg =    4,755.9
+                                                              max =     14,336
+
+Integration method: mvaghermite                 Integration pts.  =          7
+
+                                                Wald chi2(1)      =     119.50
+Log likelihood = -54986.043                     Prob > chi2       =     0.0000
+----------------------------------------------------------------------------------------
+doac_next_three_months | Odds Ratio   Std. Err.      z    P>|z|     [95% Conf. Interval]
+-----------------------+----------------------------------------------------------------
+     1.doac_previously |   .6456836   .0258376   -10.93   0.000     .5969779    .6983631
+                 _cons |   .1322164   .0154599   -17.30   0.000     .1051369    .1662706
+-----------------------+----------------------------------------------------------------
+stp                    |
+             var(_cons)|   .4127773   .1096084                       .245295    .6946129
+----------------------------------------------------------------------------------------
+Note: Estimates are transformed only in the first equation.
+Note: _cons estimates baseline odds (conditional on zero random effects).
+LR test vs. logistic model: chibar2(01) = 5945.37     Prob >= chibar2 = 0.0000
+
+Fitting fixed-effects model:
+
+Iteration 0:   log likelihood = -58060.417  
+Iteration 1:   log likelihood = -57990.301  
+Iteration 2:   log likelihood = -57990.028  
+Iteration 3:   log likelihood = -57990.027  
+
+Refining starting values:
+
+Grid node 0:   log likelihood = -55040.049
+
+Fitting full model:
+
+Iteration 0:   log likelihood = -55040.049  (not concave)
+Iteration 1:   log likelihood = -55038.963  (not concave)
+Iteration 2:   log likelihood = -55037.891  (backed up)
+Iteration 3:   log likelihood = -55037.311  (backed up)
+Iteration 4:   log likelihood = -55036.804  
+Iteration 5:   log likelihood = -55036.253  
+Iteration 6:   log likelihood =   -55035.7  
+Iteration 7:   log likelihood = -55035.452  
+Iteration 8:   log likelihood = -55035.177  
+Iteration 9:   log likelihood = -55034.994  
+Iteration 10:  log likelihood = -55034.958  
+Iteration 11:  log likelihood = -55034.957  
+
+Mixed-effects logistic regression               Number of obs     =    147,434
+Group variable:             stp                 Number of groups  =         31
+
+                                                Obs per group:
+                                                              min =        180
+                                                              avg =    4,755.9
+                                                              max =     14,336
+
+Integration method: mvaghermite                 Integration pts.  =          7
+
+                                                Wald chi2(1)      =      26.50
+Log likelihood = -55034.957                     Prob > chi2       =     0.0000
+-----------------------------------------------------------------------------------------
+ doac_next_three_months | Odds Ratio   Std. Err.      z    P>|z|     [95% Conf. Interval]
+------------------------+----------------------------------------------------------------
+1.doac_contraindication |   .4010031   .0711769    -5.15   0.000     .2831796    .5678498
+                  _cons |   .1298777   .0151258   -17.53   0.000     .1033719      .16318
+------------------------+----------------------------------------------------------------
+stp                     |
+              var(_cons)|     .40948   .1087673                      .2432954    .6891781
+-----------------------------------------------------------------------------------------
+Note: Estimates are transformed only in the first equation.
+Note: _cons estimates baseline odds (conditional on zero random effects).
+LR test vs. logistic model: chibar2(01) = 5910.14     Prob >= chibar2 = 0.0000
+
+. 
+. melogit doac_next_three_months $fixed_variables || stp:, or
+
+Fitting fixed-effects model:
+
+Iteration 0:   log likelihood = -55075.343  
+Iteration 1:   log likelihood =  -53889.26  
+Iteration 2:   log likelihood = -53874.701  
+Iteration 3:   log likelihood = -53874.699  
+
+Refining starting values:
+
+Grid node 0:   log likelihood = -51121.598
+
+Fitting full model:
+
+Iteration 0:   log likelihood = -51121.598  (not concave)
+Iteration 1:   log likelihood = -51120.588  (not concave)
+Iteration 2:   log likelihood =  -51119.59  (backed up)
+Iteration 3:   log likelihood = -51118.538  (backed up)
+Iteration 4:   log likelihood = -51116.441  
+Iteration 5:   log likelihood = -51110.351  
+Iteration 6:   log likelihood = -51102.716  
+Iteration 7:   log likelihood = -51095.555  
+Iteration 8:   log likelihood = -51093.202  
+Iteration 9:   log likelihood = -51093.202  
+
+Mixed-effects logistic regression               Number of obs     =    147,434
+Group variable:             stp                 Number of groups  =         31
+
+                                                Obs per group:
+                                                              min =        180
+                                                              avg =    4,755.9
+                                                              max =     14,336
+
+Integration method: mvaghermite                 Integration pts.  =          7
+
+                                                Wald chi2(20)     =    6624.92
+Log likelihood = -51093.202                     Prob > chi2       =     0.0000
+-----------------------------------------------------------------------------------------
+ doac_next_three_months | Odds Ratio   Std. Err.      z    P>|z|     [95% Conf. Interval]
+------------------------+----------------------------------------------------------------
+                 agecat |
+                    65  |   1.523926   .0483156    13.29   0.000     1.432112    1.621628
+                    75  |   1.933228     .05822    21.89   0.000     1.822421    2.050772
+                        |
+                imd_cat |
+                     2  |   1.067433    .028942     2.41   0.016     1.012188    1.125692
+                     3  |   1.067235   .0286388     2.42   0.015     1.012554    1.124868
+                     4  |    1.03273   .0279496     1.19   0.234     .9793774    1.088989
+                     5  |   1.025746   .0280536     0.93   0.353     .9722101    1.082231
+                        |
+     1.care_home_binary |   1.324978   .0928421     4.02   0.000     1.154954    1.520033
+  1.atrial_fibrillation |   1.928144   .0416954    30.36   0.000      1.84813    2.011622
+                        |
+               egfr_cat |
+                  >=60  |   .7165422   .0155175   -15.39   0.000      .686765    .7476106
+                 30-59  |   .6319138   .0151886   -19.10   0.000     .6028351    .6623952
+                   <30  |   .3255819   .0181289   -20.15   0.000     .2919201    .3631252
+                        |
+            1.prior_rft |   3.403662   .0746947    55.81   0.000     3.260367    3.553255
+                        |
+                inr_cat |
+                     1  |   1.394748   .0377366    12.30   0.000     1.322712    1.470707
+                     4  |    1.78295   .0505299    20.40   0.000     1.686613    1.884789
+                     7  |   1.873401   .0564237    20.84   0.000     1.766013    1.987318
+                        |
+        warfarin_length |
+                     2  |   1.254452   .0618926     4.59   0.000     1.138826    1.381819
+                     3  |   1.313224   .0655523     5.46   0.000     1.190829    1.448199
+                     4  |   1.141438   .0548565     2.75   0.006      1.03883    1.254182
+                        |
+      1.doac_previously |   .6485094   .0269589   -10.42   0.000     .5977662      .70356
+1.doac_contraindication |   .3556712   .0642089    -5.73   0.000     .2496792    .5066582
+                  _cons |    .015091    .001958   -32.32   0.000     .0117024    .0194608
+------------------------+----------------------------------------------------------------
+stp                     |
+              var(_cons)|     .40275   .1066901                      .2396341    .6768966
+-----------------------------------------------------------------------------------------
+Note: Estimates are transformed only in the first equation.
+Note: _cons estimates baseline odds (conditional on zero random effects).
+LR test vs. logistic model: chibar2(01) = 5562.99     Prob >= chibar2 = 0.0000
+
+. 
+. 
+. log close
+      name:  <unnamed>
+       log:  E:\alex\anticoagulant-switching-research\output/model.log
+  log type:  text
+ closed on:  29 Oct 2020, 10:05:10
+----------------------------------------------------------------------------------------------------------------------------------------------------------------------------
