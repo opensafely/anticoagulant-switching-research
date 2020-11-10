@@ -66,6 +66,24 @@ egen inr_cat = cut(inr_test_count), at(0, 1, 4, 7, 1000)
 recode doac_previously .=0
 recode doac_contraindication .=0
 
+global count_variables			///
+		agecat					///
+		/*ethnicity*/			///
+		imd_cat					///
+		care_home_binary		///
+		atrial_fibrillation		///
+		egfr_cat				///
+		prior_rft				///
+		inr_cat					///
+		warfarin_length			///
+		doac_previously			///
+		doac_contraindication
+
+
+foreach var in $count_variables{
+	table `var' doac_next_three_months
+}
+
 global fixed_variables			///
 		i.agecat				///
 		/*i.ethnicity*/			///
