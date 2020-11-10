@@ -3,7 +3,8 @@
 This is the code and configuration for our paper, 'OpenSAFELY: impact of the NHS guidance of switching from warfarin to direct anticoagulants (DOACs) in early phase of COVID-19 pandemic'
 
 * The paper is [here]()
-* The main analysis is in a notebook [here](https://github.com/opensafely/anticoagulant-switching-research/blob/master/notebooks/Warfarin_DOAC_rpt.ipynb), with an additional notebook assessing the associated prescribing costs [here](https://github.com/opensafely/anticoagulant-switching-research/blob/master/notebooks/DOAC_costings.ipynb).
+* The main analysis is in a notebook [here](https://github.com/opensafely/anticoagulant-switching-research/blob/master/notebooks/Warfarin_DOAC_rpt.ipynb), including charts and tables, with additional more detailed outputs [here](https://github.com/opensafely/anticoagulant-switching-research/tree/master/output).
+* An additional notebook assessing the associated prescribing costs is [here](https://github.com/opensafely/anticoagulant-switching-research/blob/master/notebooks/DOAC_costings.ipynb).
 * Raw model outputs from the "factors associated with switching" analysis, including charts, crosstabs, etc, are [here](https://github.com/opensafely/anticoagulant-switching-research/tree/master/released_outputs)
 * If you are interested in how we defined our code lists, look in the [codelists folder](./codelists/).
 * If you are interested in how we defined our variables (for the "factors associated" analysis), take a look at the [study definition](analysis/study_definition.py); this is written in `python`, but non-programmers should be able to understand what is going on there
@@ -18,7 +19,7 @@ nbviewer](https://nbviewer.jupyter.org/github/ebmdatalab/<repo>/tree/master/note
 though looking at them in Github should also work.
 
 To do development work, you'll need to set up a local jupyter server
-and git repository - see notes below and `DEVELOPERS.md` for more detail.
+and git repository - see notes below.
 
 ## Getting started re-running these notebooks
 
@@ -29,12 +30,24 @@ analysis notebook, using Docker.  It also includes:
 * cross-platform startup scripts
 * best practice folder structure and documentation
 
-Developers and analysts using this repo should
-refer to [`DEVELOPERS.md`](DEVELOPERS.md) for instructions on getting
-started. 
+### Loading SQL credentials when running notebooks
 
-If you have not yet installed Docker, please see the [`INSTALLATION_GUIDE.md`](INSTALLATION_GUIDE.md)
+Notebooks are fed from live SQL connection to either the dummy or real data held on OpenSAFELY. 
+If you are re-running this within OpenSAFELY, you need to create a local file `environ.txt` in your local drive with SQL server details/credentials as follows:
+`DBCONN="DRIVER={ODBC Driver 17 for SQL Server};SERVER=[servername];DATABASE=[dbname];UID=[your_UID];PWD=[your_pw]"` (do not keep the square brackets). 
+For dummy data (outside of the secure server), this is referred to in `run.py` so run the notebook using command `py run.py` in Windows rather than using `run.exe`.
+Within the server, add `--env-file <path>/environ.txt` to the docker run command (replacing `<path>` with the location of the `environ.txt` file.
 
+The credentials are loaded into notebooks as follows:
+```python
+dbconn = os.environ.get('DBCONN', None).strip('"')
+def closing_connection(dbconn):
+    cnxn = pyodbc.connect(dbconn)
+    try:
+        yield cnxn
+    finally:
+        cnxn.close()
+```
         
 # About the OpenSAFELY framework
 
