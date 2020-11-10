@@ -68,7 +68,7 @@ recode doac_contraindication .=0
 
 global count_variables			///
 		agecat					///
-		/*ethnicity*/			///
+		ethnicity				///
 		imd_cat					///
 		care_home_binary		///
 		atrial_fibrillation		///
@@ -81,7 +81,7 @@ global count_variables			///
 
 
 foreach var in $count_variables{
-	table `var' doac_next_three_months
+	table `var' doac_next_three_months, missing
 }
 
 global fixed_variables			///
@@ -97,7 +97,7 @@ global fixed_variables			///
 		i.doac_previously		///
 		i.doac_contraindication
 
-		
+
 foreach var in $fixed_variables{
 	melogit doac_next_three_months `var' || stp:, or
 }
