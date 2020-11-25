@@ -2,7 +2,7 @@
       name:  <unnamed>
        log:  E:\alex\anticoagulant-switching-research\output/model.log
   log type:  text
- opened on:  29 Oct 2020, 09:24:43
+ opened on:  10 Nov 2020, 16:47:47
 
 . 
 . import delimited `c(pwd)'/output/input.csv, clear
@@ -143,6 +143,139 @@
 (doac_contraindication: 0 changes made)
 
 . 
+. global count_variables                  ///
+>                 agecat                                  ///
+>                 ethnicity                               ///
+>                 imd_cat                                 ///
+>                 care_home_binary                ///
+>                 atrial_fibrillation             ///
+>                 egfr_cat                                ///
+>                 prior_rft                               ///
+>                 inr_cat                                 ///
+>                 warfarin_length                 ///
+>                 doac_previously                 ///
+>                 doac_contraindication
+
+. 
+. 
+. foreach var in $count_variables{
+  2.         table `var' doac_next_three_months, missing
+  3. }
+
+--------------------------
+          |doac_next_three
+          |    _months    
+   agecat |      0       1
+----------+---------------
+       18 | 25,028   1,717
+       65 | 32,872   4,531
+       75 | 69,839  13,469
+--------------------------
+
+--------------------------
+          |doac_next_three
+          |    _months    
+ethnicity |      0       1
+----------+---------------
+        0 | 36,892   5,697
+        1 | 87,375  13,715
+        2 |    307      27
+        3 |  1,888     159
+        4 |    730      67
+        5 |    547      52
+--------------------------
+
+--------------------------
+5         |doac_next_three
+quantiles |    _months    
+of imd    |      0       1
+----------+---------------
+        1 | 26,334   3,322
+        2 | 25,611   3,830
+        3 | 25,481   4,330
+        4 | 25,332   4,110
+        5 | 24,981   4,125
+--------------------------
+
+----------------------------
+          |doac_next_three_m
+care_home |      onths      
+_binary   |       0        1
+----------+-----------------
+        0 | 126,394   19,431
+        1 |   1,345      286
+----------------------------
+
+--------------------------
+atrial_fi |doac_next_three
+brillatio |    _months    
+n         |      0       1
+----------+---------------
+        0 | 44,456   3,587
+        1 | 83,283  16,130
+--------------------------
+
+--------------------------
+          |doac_next_three
+          |    _months    
+ egfr_cat |      0       1
+----------+---------------
+  Unknown | 53,451   6,780
+     >=60 | 43,965   7,497
+    30-59 | 26,382   5,012
+      <30 |  3,941     428
+--------------------------
+
+--------------------------
+          |doac_next_three
+          |    _months    
+prior_rft |      0       1
+----------+---------------
+        0 | 58,742   4,329
+        1 | 68,997  15,388
+--------------------------
+
+--------------------------
+          |doac_next_three
+          |    _months    
+  inr_cat |      0       1
+----------+---------------
+        0 | 23,164   2,244
+        1 | 52,680   7,590
+        4 | 30,079   5,732
+        7 | 21,816   4,151
+--------------------------
+
+--------------------------
+          |doac_next_three
+warfarin_ |    _months    
+length    |      0       1
+----------+---------------
+        1 |  5,996     569
+        2 | 30,528   4,797
+        3 | 24,194   4,289
+        4 | 67,021  10,062
+--------------------------
+
+----------------------------
+          |doac_next_three_m
+doac_prev |      onths      
+iously    |       0        1
+----------+-----------------
+        0 | 120,886   18,965
+        1 |   6,853      752
+----------------------------
+
+----------------------------
+doac_cont |doac_next_three_m
+raindicat |      onths      
+ion       |       0        1
+----------+-----------------
+        0 | 127,224   19,682
+        1 |     515       35
+----------------------------
+
+. 
 . global fixed_variables                  ///
 >                 i.agecat                                ///
 >                 /*i.ethnicity*/                 ///
@@ -157,7 +290,7 @@
 >                 i.doac_contraindication
 
 . 
-.                 
+. 
 . foreach var in $fixed_variables{
   2.         melogit doac_next_three_months `var' || stp:, or
   3. }
@@ -770,5 +903,5 @@ LR test vs. logistic model: chibar2(01) = 5562.99     Prob >= chibar2 = 0.0000
       name:  <unnamed>
        log:  E:\alex\anticoagulant-switching-research\output/model.log
   log type:  text
- closed on:  29 Oct 2020, 10:05:10
+ closed on:  10 Nov 2020, 17:00:47
 ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------
