@@ -1,6 +1,6 @@
 # OpenSAFELY Anticoagulant Switching Research
 
-This is the code and configuration for our paper, 'OpenSAFELY: impact of the NHS guidance of switching from warfarin to direct anticoagulants (DOACs) in early phase of COVID-19 pandemic'
+This is the code and configuration for our paper, 'OpenSAFELY: impact of national guidance on switching from warfarin to direct oral anticoagulants (DOACs) in early phase of COVID-19 pandemic in England'
 
 * The paper is [here]()
 * The main analysis is in a notebook [here](https://github.com/opensafely/anticoagulant-switching-research/blob/master/notebooks/Warfarin_DOAC_rpt.ipynb), including charts and tables, with additional more detailed outputs [here](https://github.com/opensafely/anticoagulant-switching-research/tree/master/output).
