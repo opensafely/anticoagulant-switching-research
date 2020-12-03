@@ -1,15 +1,13 @@
-# OpenSAFELY Research Template
+# OpenSAFELY Anticoagulant Switching Research
 
-This is a template repository for making new OpenSAFELY resarch projects.  Eventually it'll become a framework. To get started, create a new repo using this repo as a template, delete this front matter, and edit the text that follows.
-
-# _title goes here_
-
-This is the code and configuration for our paper, _name goes here_
+This is the code and configuration for our paper, 'OpenSAFELY: impact of the NHS guidance of switching from warfarin to direct anticoagulants (DOACs) in early phase of COVID-19 pandemic'
 
 * The paper is [here]()
-* Raw model outputs, including charts, crosstabs, etc, are in `released_analysis_results/`
-* If you are interested in how we defined our variables, take a look at the [study definition](analysis/study_definition.py); this is written in `python`, but non-programmers should be able to understand what is going on there
+* The main analysis is in a notebook [here](https://github.com/opensafely/anticoagulant-switching-research/blob/master/notebooks/Warfarin_DOAC_rpt.ipynb), including charts and tables, with additional more detailed outputs [here](https://github.com/opensafely/anticoagulant-switching-research/tree/master/output).
+* An additional notebook assessing the associated prescribing costs is [here](https://github.com/opensafely/anticoagulant-switching-research/blob/master/notebooks/DOAC_costings.ipynb).
+* Raw model outputs from the "factors associated with switching" analysis, including charts, crosstabs, etc, are [here](https://github.com/opensafely/anticoagulant-switching-research/tree/master/released_outputs)
 * If you are interested in how we defined our code lists, look in the [codelists folder](./codelists/).
+* If you are interested in how we defined our variables (for the "factors associated" analysis), take a look at the [study definition](analysis/study_definition.py); this is written in `python`, but non-programmers should be able to understand what is going on there
 * Developers and epidemiologists interested in the code should review
 [DEVELOPERS.md](./docs/DEVELOPERS.md).
 
@@ -21,7 +19,7 @@ nbviewer](https://nbviewer.jupyter.org/github/ebmdatalab/<repo>/tree/master/note
 though looking at them in Github should also work.
 
 To do development work, you'll need to set up a local jupyter server
-and git repository - see notes below and `DEVELOPERS.md` for more detail.
+and git repository - see notes below.
 
 ## Getting started re-running these notebooks
 
@@ -32,24 +30,24 @@ analysis notebook, using Docker.  It also includes:
 * cross-platform startup scripts
 * best practice folder structure and documentation
 
-Developers and analysts using this repo should
-refer to [`DEVELOPERS.md`](DEVELOPERS.md) for instructions on getting
-started. 
-
-If you have not yet installed Docker, please see the [`INSTALLATION_GUIDE.md`](INSTALLATION_GUIDE.md)
-
 ### Loading SQL credentials when running notebooks
-Create a file `environ.txt` in the root and set the SQL server details/credentials as follows:
-`DBCONN="DRIVER={ODBC Driver 17 for SQL Server};SERVER=[servername];DATABASE=[dbname];UID=[your_UID];PWD=[your_pw]"`. 
-This is referred to in `run.py` so run the notebook using command `py run.py` in Windows (outside of the server) rather than using `run.exe`.
+
+Notebooks are fed from live SQL connection to either the dummy or real data held on OpenSAFELY. 
+If you are re-running this within OpenSAFELY, you need to create a local file `environ.txt` in your local drive with SQL server details/credentials as follows:
+`DBCONN="DRIVER={ODBC Driver 17 for SQL Server};SERVER=[servername];DATABASE=[dbname];UID=[your_UID];PWD=[your_pw]"` (do not keep the square brackets). 
+For dummy data (outside of the secure server), this is referred to in `run.py` so run the notebook using command `py run.py` in Windows rather than using `run.exe`.
+Within the server, add `--env-file <path>/environ.txt` to the docker run command (replacing `<path>` with the location of the `environ.txt` file.
+
 The credentials are loaded into notebooks as follows:
-`dbconn = os.environ.get('DBCONN', None).strip('"')`
-`def closing_connection(dbconn):
+```python
+dbconn = os.environ.get('DBCONN', None).strip('"')
+def closing_connection(dbconn):
     cnxn = pyodbc.connect(dbconn)
     try:
         yield cnxn
     finally:
-        cnxn.close()'
+        cnxn.close()
+```
         
 # About the OpenSAFELY framework
 
