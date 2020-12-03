@@ -1,5 +1,5 @@
 issuemonth,Repeats started same day,Warfarin ended same day,DOAC ended same day
-2019-01-01,105,25,10.0
+2019-01-01,106,25,11.0
 2019-02-01,98,24,11.0
 2019-03-01,103,26,11.0
 2019-04-01,94,23,9.0
@@ -19,3 +19,4 @@ issuemonth,Repeats started same day,Warfarin ended same day,DOAC ended same day
 2020-06-01,99,19,6.0
 2020-07-01,88,16,8.0
 2020-08-01,75,21,
+2020-09-01,73,16,7.0
