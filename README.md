@@ -32,11 +32,11 @@ analysis notebook, using Docker.  It also includes:
 
 ### Loading SQL credentials when running notebooks
 
-The main notebook here is fed from live SQL connection to either the dummy or real data held on OpenSAFELY. 
+The main notebook here is fed from live SQL connection to either the dummy or real data held on OpenSAFELY. This can be run in dummy data, by launching the notebook using command `py run.py` in Windows.
 For developers re-running this within OpenSAFELY, you need to create a local file `environ.txt` in your local drive with SQL server details/credentials as follows:
-`DBCONN="DRIVER={ODBC Driver 17 for SQL Server};SERVER=[servername];DATABASE=[dbname];UID=[your_UID];PWD=[your_pw]"` (do not keep the square brackets). 
-This can also be run in dummy data (outside of the secure server), launch the notebook using command `py run.py` in Windows.
-Within the server, add `--env-file <path>/environ.txt` to the docker run command (replacing `<path>` with the location of the `environ.txt` file.
+`DBCONN="DRIVER={ODBC Driver 17 for SQL Server};SERVER=[servername];DATABASE=[dbname];UID=[your_UID];PWD=[your_pw]"` (do not keep the square brackets). Add `--env-file <path>/environ.txt` to the docker run command (replacing `<path>` with the location of the `environ.txt` file.
+
+
 
 The credentials are loaded into notebooks as follows:
 ```python
