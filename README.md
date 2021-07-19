@@ -2,11 +2,11 @@
 
 This is the code and configuration for our paper, 'OpenSAFELY: impact of national guidance on switching from warfarin to direct oral anticoagulants (DOACs) in early phase of COVID-19 pandemic in England'
 
-* The paper is [here]()
-* The main analysis is in a notebook [here](https://github.com/opensafely/anticoagulant-switching-research/blob/master/notebooks/Warfarin_DOAC_rpt.ipynb), including charts and tables, with additional more detailed outputs [here](https://github.com/opensafely/anticoagulant-switching-research/tree/master/output).
+* The preprint version of our paper is [here](https://www.medrxiv.org/content/10.1101/2020.12.03.20243535v1) which has been made available prior to peer review.
+* The main analysis is in a notebook [here](https://github.com/opensafely/anticoagulant-switching-research/blob/master/notebooks/Warfarin_DOAC_rpt.ipynb), including charts and tables, with additional more detailed outputs [here](https://github.com/opensafely/anticoagulant-switching-research/tree/master/output). This was carried out in the very early stages of OpenSAFELY development during the pandemic and uses a deprecated method for accessing OpenSafely data involving SQL. See below for further details.
 * An additional notebook assessing the associated prescribing costs is [here](https://github.com/opensafely/anticoagulant-switching-research/blob/master/notebooks/DOAC_costings.ipynb).
 * Raw model outputs from the "factors associated with switching" analysis, including charts, crosstabs, etc, are [here](https://github.com/opensafely/anticoagulant-switching-research/tree/master/released_outputs)
-* If you are interested in how we defined our code lists, look in the [codelists folder](./codelists/).
+* If you are interested in how we defined our code lists, look in the [codelists folder](./codelists/) and all codelists are available on [OpenCodelists](https://codelists.opensafely.org/) for re-use.
 * If you are interested in how we defined our variables (for the "factors associated" analysis), take a look at the [study definition](analysis/study_definition.py); this is written in `python`, but non-programmers should be able to understand what is going on there
 * Developers and epidemiologists interested in the code should review
 [DEVELOPERS.md](./docs/DEVELOPERS.md).
@@ -16,7 +16,7 @@ This is the code and configuration for our paper, 'OpenSAFELY: impact of nationa
 Notebooks live in the `notebooks/` folder (with an `ipynb`
 extension). You can most easily view them [on
 nbviewer](https://nbviewer.jupyter.org/github/ebmdatalab/<repo>/tree/master/notebooks/),
-though looking at them in Github should also work.
+if looking at them in Github does not work.
 
 To do development work, you'll need to set up a local jupyter server
 and git repository - see notes below.
@@ -32,11 +32,11 @@ analysis notebook, using Docker.  It also includes:
 
 ### Loading SQL credentials when running notebooks
 
-Notebooks are fed from live SQL connection to either the dummy or real data held on OpenSAFELY. 
-If you are re-running this within OpenSAFELY, you need to create a local file `environ.txt` in your local drive with SQL server details/credentials as follows:
-`DBCONN="DRIVER={ODBC Driver 17 for SQL Server};SERVER=[servername];DATABASE=[dbname];UID=[your_UID];PWD=[your_pw]"` (do not keep the square brackets). 
-For dummy data (outside of the secure server), this is referred to in `run.py` so run the notebook using command `py run.py` in Windows rather than using `run.exe`.
-Within the server, add `--env-file <path>/environ.txt` to the docker run command (replacing `<path>` with the location of the `environ.txt` file.
+The main notebook here is fed from live SQL connection to either the dummy or real data held on OpenSAFELY. This can be run in dummy data, by launching the notebook using command `py run.py` in Windows.
+For developers re-running this within OpenSAFELY, you need to create a local file `environ.txt` in your local drive with SQL server details/credentials as follows:
+`DBCONN="DRIVER={ODBC Driver 17 for SQL Server};SERVER=[servername];DATABASE=[dbname];UID=[your_UID];PWD=[your_pw]"` (do not keep the square brackets). Add `--env-file <path>/environ.txt` to the docker run command (replacing `<path>` with the location of the `environ.txt` file.
+
+
 
 The credentials are loaded into notebooks as follows:
 ```python
