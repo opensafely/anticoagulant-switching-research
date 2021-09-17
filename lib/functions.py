@@ -82,10 +82,13 @@ def plot_line_chart(dfs, titles, ylabels=None, loc='lower left', ymins=None, fil
         # if no error bars to plot, use a standard plot function
         if len(measures) == len(dfp.columns):
             if len(measures)==4:
-                dfp.iloc[:, [0,1]].plot(ax=ax, legend=legend)
+                # if there are four measures, plot in two pairs, half with dotted lines but same colours
+                dfp.iloc[:, [0]].plot(ax=ax)
                 c1 = color=plt.gca().lines[0].get_color()
-                c2 = color=plt.gca().lines[1].get_color()
-                dfp.iloc[:, [2]].plot(ax=ax, ls='--', color=c1)
+                dfp.iloc[:, [1]].plot(ax=ax, ls='--', color=c1)
+                
+                dfp.iloc[:, [2]].plot(ax=ax, legend=legend)
+                c2 = color=plt.gca().lines[2].get_color()
                 dfp.iloc[:, [3]].plot(ax=ax, ls='--', color=c2)
             else:
                 dfp.plot(ax=ax, legend=legend)

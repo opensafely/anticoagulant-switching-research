@@ -118,17 +118,18 @@ plot_line_chart(dfs, titles, filename=figname,  loc="upper left")
 # ## INR tests for patients on Warfarin (and not DOAC) in previous 3 months
 
 # +
-dfp4 = pd.read_csv(os.path.join("..","output","inr_testing.csv"),index_col=0)
+dfp4 = pd.read_csv(os.path.join("..","output","inr_testing.csv"))
+
 dfp4["INR_month"] = pd.to_datetime(dfp4["INR_month"])
 dfp4 = dfp4.set_index("INR_month")
 
-dfp4["patients tested"] = 1000*dfp4["patient_count"]/dfp4["denominator"]
-dfp4["total tests"] = 1000*dfp4["test_count"]/dfp4["denominator"]
-titles = ["(a) INR tests"]
-figname = "inr_testing_label2"
-plot_line_chart([dfp4[["total tests","patients tested"]]], titles, ylabels={0:"Total tests / rate per 1000"}, filename=figname
-                )
+dfp4["No of patients with INR"] = 1000*dfp4["patient_count"]/dfp4["denominator"]
+dfp4["No of INRs"] = 1000*dfp4["test_count"]/dfp4["denominator"]
 
+titles = ["(a) Number of patients with an INR test per month, and\n number of INRs, per thousand patients on Warfarin"]
+
+plot_line_chart([dfp4[["No of patients with INR","No of INRs"]]], titles, 
+                ylabels={0:"Rate per 1000"}, filename="fig4a")
 
 # +
 dfp5 = pd.read_csv(os.path.join("..","output","high_inr.csv"),index_col=0)
@@ -158,8 +159,8 @@ dfp7[">=8 per 1000 pts tested"] = 1000*dfp7["patient_count_equal_greater_8"]/dfp
 
 figname = "high_inr"
 titles = ["(d) Monthly rate of high INRs (>8 / >=8)\n recorded in warfarin patients"]
-plot_line_chart([dfp7[[">8 per 1000 warfarin pts", ">8 per 1000 pts tested",
-                       ">=8 per 1000 warfarin pts", ">=8 per 1000 pts tested"]]],
+plot_line_chart([dfp7[[">8 per 1000 warfarin pts", ">=8 per 1000 warfarin pts",
+                       ">8 per 1000 pts tested", ">=8 per 1000 pts tested"]]],
                 titles,  loc="upper left",
                 ylabels={0:"Patients with High INRs per 1000 patients"}, 
                 filename=figname)
