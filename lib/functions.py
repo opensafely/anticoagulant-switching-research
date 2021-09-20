@@ -82,14 +82,23 @@ def plot_line_chart(dfs, titles, ylabels=None, loc='lower left', ymins=None, fil
         # if no error bars to plot, use a standard plot function
         if len(measures) == len(dfp.columns):
             if len(measures)==4:
-                # if there are four measures, plot in two pairs, half with dotted lines but same colours
-                dfp.iloc[:, [0]].plot(ax=ax)
-                c1 = color=plt.gca().lines[0].get_color()
-                dfp.iloc[:, [1]].plot(ax=ax, ls='--', color=c1)
+                # if there are four measures, plot in two pairs, half with dashed lines but same colours
+                legend = False # turn legend off to avoid using raw column labels
+                labels = dfp.columns
+                labels = [l.replace(">=","$\geq$") for l in labels] # use 'greater than or equal to' symbol in legend labels
                 
+                # plot first line
+                dfp.iloc[:, [0]].plot(ax=ax, legend=legend)
+                # get colour of first line to reuse it for corresponding dashed line:
+                c1 = color=plt.gca().lines[0].get_color()
+                dfp.iloc[:, [1]].plot(ax=ax, ls='--', color=c1, legend=legend)
+                
+                # repeat for second pair of lines
                 dfp.iloc[:, [2]].plot(ax=ax, legend=legend)
                 c2 = color=plt.gca().lines[2].get_color()
-                dfp.iloc[:, [3]].plot(ax=ax, ls='--', color=c2)
+                dfp.iloc[:, [3]].plot(ax=ax, ls='--', color=c2, legend=legend)
+                
+                plt.legend(labels=[fr'{labels[0]}', fr'{labels[1]}', fr'{labels[2]}',fr'{labels[3]}'], loc=loc, fontsize=14*fontsizing)
             else:
                 dfp.plot(ax=ax, legend=legend)
         # else use errorbar plot
@@ -109,7 +118,7 @@ def plot_line_chart(dfs, titles, ylabels=None, loc='lower left', ymins=None, fil
         ax.tick_params(axis='x', size=10*fontsizing)
         
         ax.axvline(date(2020,3,26), color='k', linestyle=":", alpha=0.8)
-        ax.text(date(2020,3,31), ymin*1.001, "NHSE directive", rotation=90, fontsize=11*fontsizing)
+        ax.text(date(2020,3,31), ymin*1.03, "NHSE directive", rotation=90, fontsize=11*fontsizing)
         
         ax.set_ylabel(ylabel, size=14*fontsizing)
         ax.set_xlabel("Month", size=14*fontsizing)

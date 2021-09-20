@@ -158,9 +158,9 @@ dfp7[">=8 per 1000 warfarin pts"] = 1000*dfp7["patient_count_equal_greater_8"]/d
 dfp7[">=8 per 1000 pts tested"] = 1000*dfp7["patient_count_equal_greater_8"]/dfp7["patient_count"]
 
 figname = "high_inr"
-titles = ["(d) Monthly rate of high INRs (>8 / >=8)\n recorded in warfarin patients"]
+titles = [r'(d) Monthly rate of high INRs $(>8 / \geq 8)$ recorded in warfarin patients']
 plot_line_chart([dfp7[[">8 per 1000 warfarin pts", ">=8 per 1000 warfarin pts",
                        ">8 per 1000 pts tested", ">=8 per 1000 pts tested"]]],
                 titles,  loc="upper left",
-                ylabels={0:"Patients with High INRs per 1000 patients"}, 
+                ylabels={0:"Number of High INRs per 1000 patients"}, 
                 filename=figname)
