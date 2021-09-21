@@ -61,6 +61,7 @@ label define egfr_cat	1 "eGFR >=60"	///
 						4 "Other RFT"	///
 						0 "No eGFR/RFT"
 label values egfr_cat egfr_cat
+fvset base 1 egfr_cat
 ***************************************************************
 recode prior_rft .=0
 egen inr_cat = cut(inr_test_count), at(0, 1, 4, 7, 1000)
