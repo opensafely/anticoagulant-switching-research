@@ -48,7 +48,7 @@ study = StudyDefinition(
     warfarin_6_months=patients.with_these_medications(
         warfarin_codes,
         on_or_before="2019-09-16",
-        return_expectations={"incidence": 1},
+        return_expectations={"incidence": .9},
     ),
 
     warfarin_last_three_months=patients.with_these_medications(
@@ -70,7 +70,8 @@ study = StudyDefinition(
         include_month=True,
         include_day=False,
         return_expectations={
-            "date": {"earliest": "2019-09-16", "latest": "2020-03-15"}
+            "incidence": 0.8,
+            "date": {"earliest": "2020-03-16", "latest": "2020-06-15"}
         },
     ),
     doac_last_three_months=patients.with_these_medications(
