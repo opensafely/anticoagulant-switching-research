@@ -121,6 +121,7 @@ plot_line_chart(dfs, titles, filename=figname,  loc="upper left")
 dfp4 = pd.read_csv(os.path.join("..","output","inr_testing.csv"))
 
 dfp4["INR_month"] = pd.to_datetime(dfp4["INR_month"])
+dfp4 = dfp4.loc[dfp4["INR_month"] >= '2019-04-01'] #filter to only dates from April 2019 
 dfp4 = dfp4.set_index("INR_month")
 
 dfp4["No of patients with INR"] = 1000*dfp4["patient_count"]/dfp4["denominator"]
@@ -134,6 +135,7 @@ plot_line_chart([dfp4[["No of patients with INR","No of INRs"]]], titles,
 # +
 dfp5 = pd.read_csv(os.path.join("..","output","high_inr.csv"),index_col=0)
 dfp5["high_INR_month"] = pd.to_datetime(dfp5["high_INR_month"])
+dfp5 = dfp5.loc[dfp5["high_INR_month"] >= '2019-04-01'] #filter to only dates from April 2019 
 #dfp5 = dfp5.set_index("high_INR_month")
 dfp5["patient_count_equal_greater_8"] = dfp5["patient_count_over_8"] + dfp5["patient_count_equal_8"]
 
@@ -164,3 +166,6 @@ plot_line_chart([dfp7[[">8 per 1000 warfarin pts", ">=8 per 1000 warfarin pts",
                 titles,  loc="upper left",
                 ylabels={0:"Number of High INRs per 1000 patients"}, 
                 filename=figname)
+# -
+
+
