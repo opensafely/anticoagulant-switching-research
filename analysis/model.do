@@ -54,10 +54,12 @@ recode egfr_cat . = 3 if egfr < 30
 recode egfr_cat . = 2 if egfr < 60
 recode egfr_cat . = 1 if egfr < .
 replace egfr_cat = 0 if egfr >= .
-label define egfr_cat 	1 ">=60" 		///
-						2 "30-59"		///
-						3 "<30"			///
-						0 "Unknown"
+replace egfr_cat = 4 if egfr_cat == 0 & prior_rft == 1
+label define egfr_cat	1 "eGFR >=60"	///
+						2 "eGFR 30-59"	///
+						3 "eGFR <30"	///
+						4 "Other RFT"	///
+						0 "No eGFR/RFT"
 label values egfr_cat egfr_cat
 ***************************************************************
 recode prior_rft .=0
@@ -73,7 +75,6 @@ global count_variables			///
 		care_home_binary		///
 		atrial_fibrillation		///
 		egfr_cat				///
-		prior_rft				///
 		inr_cat					///
 		warfarin_length			///
 		doac_previously			///
@@ -91,7 +92,6 @@ global fixed_variables			///
 		i.care_home_binary		///
 		i.atrial_fibrillation	///
 		i.egfr_cat				///
-		i.prior_rft				///
 		i.inr_cat				///
 		i.warfarin_length		///
 		i.doac_previously		///
