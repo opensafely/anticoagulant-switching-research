@@ -29,7 +29,7 @@ df = df.loc[df['warfarin_6_months']!=0]
 total, _ = count_missing(df, total, "Warfarin started <6 months ago")
 
 
-df = df.loc[df['doac_last_three_months']!=0]
+df = df.loc[df['doac_last_three_months']==0]
 total, _ = count_missing(df, total, "DOAC in last 3 months")
 
 
