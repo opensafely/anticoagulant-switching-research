@@ -1,8 +1,7 @@
 # OpenSAFELY Anticoagulant Switching Research
 
-This is the code and configuration for our paper, 'OpenSAFELY: impact of national guidance on switching from warfarin to direct oral anticoagulants (DOACs) in early phase of COVID-19 pandemic in England'
+This is the code and configuration for our paper, 'OpenSAFELY: impact of national guidance on switching from warfarin to direct oral anticoagulants (DOACs) in early phase of COVID-19 pandemic in England' which is published in [BMJ OpenHeart here](https://openheart.bmj.com/content/8/2/e001784)
 
-* The preprint version of our paper is [here](https://www.medrxiv.org/content/10.1101/2020.12.03.20243535v1) which has been made available prior to peer review.
 * The main analysis is in a notebook [here](https://github.com/opensafely/anticoagulant-switching-research/blob/master/notebooks/Warfarin_DOAC_rpt.ipynb), including charts and tables, with additional more detailed outputs [here](https://github.com/opensafely/anticoagulant-switching-research/tree/master/output). This was carried out in the very early stages of OpenSAFELY development during the pandemic and uses a deprecated method for accessing OpenSafely data involving SQL. See below for further details.
 * An additional notebook assessing the associated prescribing costs is [here](https://github.com/opensafely/anticoagulant-switching-research/blob/master/notebooks/DOAC_costings.ipynb).
 * Raw model outputs from the "factors associated with switching" analysis, including charts, crosstabs, etc, are [here](https://github.com/opensafely/anticoagulant-switching-research/tree/master/released_outputs)
@@ -10,6 +9,7 @@ This is the code and configuration for our paper, 'OpenSAFELY: impact of nationa
 * If you are interested in how we defined our variables (for the "factors associated" analysis), take a look at the [study definition](analysis/study_definition.py); this is written in `python`, but non-programmers should be able to understand what is going on there
 * Developers and epidemiologists interested in the code should review
 [DEVELOPERS.md](./docs/DEVELOPERS.md).
+* The preprint version of our paper is archived [here](https://www.medrxiv.org/content/10.1101/2020.12.03.20243535v1).
 
 ## How to view notebooks
 
