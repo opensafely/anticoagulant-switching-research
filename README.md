@@ -2,7 +2,7 @@
 
 This is the code and configuration for our paper, 'OpenSAFELY: impact of national guidance on switching from warfarin to direct oral anticoagulants (DOACs) in early phase of COVID-19 pandemic in England'
 
-* The preprint version of our paper is [here](https://www.medrxiv.org/content/10.1101/2020.12.03.20243535v1) which has been made available prior to peer review.
+* The published version of our paper is [here](https://openheart.bmj.com/content/8/2/e001784.long).
 * The main analysis is in a notebook [here](https://github.com/opensafely/anticoagulant-switching-research/blob/master/notebooks/Warfarin_DOAC_rpt.ipynb), including charts and tables, with additional more detailed outputs [here](https://github.com/opensafely/anticoagulant-switching-research/tree/master/output). This was carried out in the very early stages of OpenSAFELY development during the pandemic and uses a deprecated method for accessing OpenSafely data involving SQL. See below for further details.
 * An additional notebook assessing the associated prescribing costs is [here](https://github.com/opensafely/anticoagulant-switching-research/blob/master/notebooks/DOAC_costings.ipynb).
 * Raw model outputs from the "factors associated with switching" analysis, including charts, crosstabs, etc, are [here](https://github.com/opensafely/anticoagulant-switching-research/tree/master/released_outputs)
@@ -32,7 +32,7 @@ analysis notebook, using Docker.  It also includes:
 
 ### Loading SQL credentials when running notebooks
 
-The main notebook here is fed from live SQL connection to either the dummy or real data held on OpenSAFELY. This can be run in dummy data, by launching the notebook using command `py run.py` in Windows.
+The main notebook here is fed from live SQL connection to either the dummy or real data held on OpenSAFELY. This could previously be run in dummy data, by launching the notebook using command `py run.py` in Windows, but the dummy data connection is no longer available.
 For developers re-running this within OpenSAFELY, you need to create a local file `environ.txt` in your local drive with SQL server details/credentials as follows:
 `DBCONN="DRIVER={ODBC Driver 17 for SQL Server};SERVER=[servername];DATABASE=[dbname];UID=[your_UID];PWD=[your_pw]"` (do not keep the square brackets). Add `--env-file <path>/environ.txt` to the docker run command (replacing `<path>` with the location of the `environ.txt` file.
 
